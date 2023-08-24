@@ -2,7 +2,7 @@
 
 ![Front Side](https://psylink.me/img/boards/bp4.2.png)
 
-This board connects to a [Arduino Nano 33 BLE](https://docs.arduino.cc/hardware/nano-33-ble) or [BLE Sense](https://docs.arduino.cc/hardware/nano-33-ble-sense) and a AAA battery, with the purpose to power the Arduino and expose a variety of I/O pins and power pins in order to power further boards such as the PsyLink electrode modules.
+This board designed to be worn on a limb and connects to a [Arduino Nano 33 BLE](https://docs.arduino.cc/hardware/nano-33-ble) or [BLE Sense](https://docs.arduino.cc/hardware/nano-33-ble-sense) and a AAA battery, with the purpose to power the Arduino and expose a variety of I/O pins and power pins in order to power further boards such as the PsyLink electrode modules.
 
 Though it was designed to drive PsyLink electrode modules, it can also be used stand-alone as a battery-powered break-out board for any Arduino board that is pin-compatible with the [Arduino Nano 33 BLE](https://docs.arduino.cc/hardware/nano-33-ble), for example as a mobile [water detector](https://psylink.me/blog/retro2022/#psylink-as-a-break-out-board):
 
