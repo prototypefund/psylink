@@ -1,5 +1,7 @@
 # PsyLink Electrode Module 3.3
 
+![Front Side](https://psylink.me/img/boards/b3.2.png)
+
 This board measures voltages on 8 electrodes, does basic analog processing, and outputs 4 cleaned and amplified signals destined for the analog pins of the PsyLink power module 4.X.
 
 The processing of the signal is the following, implemented 4 times on the circuit to produce 4 output signals:
