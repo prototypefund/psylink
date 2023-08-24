@@ -61,6 +61,7 @@ The processing of the signal is the following, implemented 4 times on the circui
 Electrode Module 3.3:
 
 - Fixed aggressive filtering of signals by changing passive highpass filter capacitors C1-C8 from 100pF to 100nF.
+- Reduced gain from 501x back down to 251x, since the highpass filter fix strenghened the signal
 
 Electrode Module 3.2:
 
