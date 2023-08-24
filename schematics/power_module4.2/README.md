@@ -118,8 +118,8 @@ Power Module 2 (defunct):
 Power Module 1:
 
 - Initial version
-- Manual wiring on a prototyping board
+- Not on a PCB, but implemented through manual wiring on a prototyping board
 - Generating reference voltage with a LM324 chip
 - Using 2x 1.5V CR2032 coin cells
-- Outputs 2x 3V, 2x GND, 1x Vref (1.5V)
+- Outputs 2x 3V, 2x GND, 1x Vref (1.5V) (Warning: this was intended to power INA128 chips, but they require at least 4.5V, 3V is not enough, and will result in faulty processing)
 - Dimensions: 36 x 30mm

@@ -28,6 +28,7 @@ The processing of the signal is the following, implemented 4 times on the circui
 - 4 Output Signals on J3, cleaned and amplified, between 0V and V+ (usually 5V)
 - Differential amplification of the signals with a gain of 251x using [INA128](https://www.ti.com/product/INA128) Instrumentation Amplifiers
 - High-pass filtering using a passive highpass filter with a cut-off frequency of below 1.6Hz
+- Signals (after high-pass filtering) are pulled towards Vref via a 1MOhm resistor to avoid drifting of the signal away from the center
 - Requires a power supply on either J1 (or J2).
     - V+: 5V
     - Vref: 2.5V (must be connected to the ground electrode touching the skin)
@@ -70,3 +71,31 @@ Electrode Module 3.2:
 - Moved EX1 closer to EX5 and EX4 closer to EX8, so that two 2-pin-headers can be used instead of four 1-pin headers
 - Longer solder pads on U1-U4 for easier hand-soldering
 - Improved labels, added PsyLink logo
+
+Electrode Module 3.1:
+
+- Wider contacts on the electrode mounting points
+- Added solder jumpers JP1-JP8 that disconnect the built-in electrodes to enable wearing the module on the skin while using external electrodes without the built-in electrodes disturbing the external signal
+- Breaking ground loop on the bottom side of the board by adding a hole in the circular filled area
+
+Electrode Module 3.0:
+
+- Redesigned from scratch
+- Reduced number of power input (or daisy-chain) connectors from 3 to 2
+- Increased number of amplifier circuits from 1 to 4
+- Added holes for rubber bands on the sides, compatible with corresponding power module.
+- Added slots for screw-mounted electrodes
+- Split circuit diagram into separate electrode module and power module circuits
+- Notably, the amplifier circuit, incl. gain, was not changed
+- New dimensions: 70 x 25mm
+
+Electrode Module 2:
+
+- Added pin labels
+- Thicker traces
+
+Electrode Module 1:
+
+- Initial version
+- Calculates the difference between two voltages after a passive highpass with a cut-off frequency of below 1.6kHz (Warning: this is a bug, should have been 1.6Hz. Fix this by changing 100pF capacitors to 100nF).
+- Dimensions: 20 x 16mm
