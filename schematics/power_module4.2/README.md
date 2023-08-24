@@ -19,7 +19,7 @@ Though it was designed to drive PsyLink electrode modules, it can also be used s
 - Components of interest:
     - [Arduino Nano 33 BLE](https://docs.arduino.cc/hardware/nano-33-ble)
     - [TSP61220](https://www.ti.com/product/TPS61220) voltage booster
-    - [LM321](https://www.ti.com/product/LM321) operational amlifier (to generate reference voltage)
+    - [LM321](https://www.ti.com/product/LM321) operational amplifier (to generate reference voltage)
     - [M3 dome nuts, A2 stainless steel](https://www.schraubenking.at/M3-Hutmutter-DIN1587-Edelstahl-A2-P002263), as ground electrodes
     - [Keystone 82](https://www.mouser.com/ProductDetail/Keystone-Electronics/82?qs=l8Mz4RVwyfmSZm0sgmbamA%3D%3D) AAA Battery clip
 - Known bugs:
