@@ -1,13 +1,12 @@
 # PsyLink Electrode Module 3.3
 
-This board measures voltages on 8 electrodes, does basic analog processing, and outputs 4 cleaned and amplified signals destined for the analog pins of the power module.
+This board measures voltages on 8 electrodes, does basic analog processing, and outputs 4 cleaned and amplified signals destined for the analog pins of the PsyLink power module 4.X.
 
 The processing of the signal is the following, implemented 4 times on the circuit to produce 4 output signals:
 
     Electrode 1 -> Passive Highpass -.
-                                      }==> Difference -> Amplifier -> Output Signal
-    Electrode 2 -> Passive Highpass -'                   (gain: 251x)
-                   (cut-off freq: 1.6Hz)
+                                      }==> Difference -> Amplifier (251x) -> Output Signal
+    Electrode 2 -> Passive Highpass -'
 
 # Overview
 
