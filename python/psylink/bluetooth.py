@@ -3,10 +3,10 @@ The Bluetooth Low Energy backend.
 
 This file contains an abstract BLEBackend as well as two implemented backends:
 
+- BleakBackend
 - BLEGATTBackend
-- BleakBackend (currently dysfunctional)
 
-which use the libraries BLE_GATT and Bleak respectively.
+which use the libraries Bleak and BLE_GATT respectively.
 
 You can add a new BLE library here by duplicating one of the implemented
 backends and replacing its methods with API calls to the new BLE library.
@@ -113,7 +113,6 @@ class BLEGATTBackend(BLEBackend):
 
 
 class BleakBackend(BLEBackend):
-    # Doesn't work as of yet due to asyncio entanglement
     def init(self):
         import bleak
         import async_to_sync
