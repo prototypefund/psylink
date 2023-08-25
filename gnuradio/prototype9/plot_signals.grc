@@ -88,7 +88,7 @@ blocks:
       \ MAC address and streams its signals.\n\"\"\"\n\n# NOTE: PsyLink's \"python\"\
       \ folder needs to be in $PYTHONPATH so that the \"psylink\" module can be imported.\n\
       # Alternatively, uncomment the following line and change the path to the location\
-      \ of the \"python\" folder:\n#sys.path.insert(0, os.path.expanduser('~/psylink/python'))\n\
+      \ of the \"python\" folder:\n#import sys, os; sys.path.insert(0, os.path.expanduser('~/psylink/python'))\n\
       \ntry:\n    import psylink.gnuradio_blocks\n    from psylink.gnuradio_blocks\
       \ import BLESource\nexcept ImportError:\n    raise Exception(\"Please ensure\
       \ that the 'psylink' python module is importable, e.g. by adding '/path/to/psylink/python'\
@@ -106,7 +106,8 @@ blocks:
       [('0', 'float', 1), ('1', 'float', 1), ('2', 'float', 1), ('3', 'float', 1),
       ('4', 'float', 1), ('5', 'float', 1), ('6', 'float', 1), ('7', 'float', 1),
       ('8', 'float', 1), ('9', 'float', 1), ('10', 'float', 1), ('11', 'float', 1),
-      ('12', 'float', 1), ('13', 'float', 1)], '', ['ble_mac'])
+      ('12', 'float', 1), ('13', 'float', 1)], '\n    This block connects to the PsyLink
+      device with the provided MAC address and streams its signals.\n    ', ['ble_mac'])
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -126,7 +127,7 @@ blocks:
       \ and might be out of date.)\n\"\"\"\n\n\n# NOTE: PsyLink's \"python\" folder\
       \ needs to be in $PYTHONPATH so that the \"psylink\" module can be imported.\n\
       # Alternatively, uncomment the following line and change the path to the location\
-      \ of the \"python\" folder:\n#sys.path.insert(0, os.path.expanduser('~/psylink/python'))\n\
+      \ of the \"python\" folder:\n#import sys, os; sys.path.insert(0, os.path.expanduser('~/psylink/python'))\n\
       \ntry:\n    import psylink.gnuradio_blocks\n    from psylink.gnuradio_blocks\
       \ import ShiftBlock\nexcept ImportError:\n    raise Exception(\"Please ensure\
       \ that the 'psylink' python module is importable, e.g. by adding '/path/to/psylink/python'\
@@ -544,3 +545,4 @@ connections:
 
 metadata:
   file_format: 1
+  grc_version: 3.10.7.0
