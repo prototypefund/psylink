@@ -3,6 +3,7 @@ __pycache__
 .idea
 additional
 venv
+.env
 www
 
 # Calibrator tool
