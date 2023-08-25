@@ -116,26 +116,25 @@ class BleakBackend(BLEBackend):
     # Doesn't work as of yet due to asyncio entanglement
     def init(self):
         import bleak
-        self.client = bleak.BleakClient(self.address)
+        import async_to_sync
+        client = bleak.BleakClient(self.address)
+        sync_client = async_to_sync.methods(client)
+        self.client = sync_client
 
     def connect(self):
-        import asyncio
-        asyncio.get_event_loop().run_until_complete(self.client.connect())
+        self.client.connect()
 
     def disconnect(self):
-        import asyncio
-        asyncio.get_event_loop().run_until_complete(self.client.disconnect())
+        self.client.disconnect()
 
     def read(self, characteristic_uuid):
-        import asyncio
-        return asyncio.get_event_loop().run_until_complete(
-                self.client.read_gatt_char(characteristic_uuid))
+        return self.client.read_gatt_char(characteristic_uuid)
 
 
 # The first class (should be BLEBackend-based) in the dict will be the default.
 # The dict keys can be used as e.g. command line parameters for dynamically
 # selecting a backend. If you add a new backend, choose any dict key you like.
 BACKENDS = dict(
-    #bleak=BleakBackend,
+    bleak=BleakBackend,
     BLE_GATT=BLEGATTBackend,
 )

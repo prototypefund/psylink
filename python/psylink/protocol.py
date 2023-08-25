@@ -30,7 +30,7 @@ class BLEDecoder:
             'sample_count': Number of samples,
             'min_sampling_delay': The approx. minimum time in milliseconds between sample reads,
             'max_sampling_delay': The approx. maximum time in milliseconds between sample reads,
-            'samples': np.array([...], dtype=np.int),
+            'samples': np.array([...], dtype=int),
             'is_duplicate': Boolean,
             'lost_packets': Number of skipped packets since last reads,
         }
@@ -70,7 +70,7 @@ class BLEDecoder:
             # ensure it's divisible by number of EMG channels:
             sample_values[-(len(sample_values) % emg_channels):] = []
         sample_count = math.floor(len(sample_values) / emg_channels)
-        samples = np.zeros((sample_count, self.channels), dtype=np.int)
+        samples = np.zeros((sample_count, self.channels), dtype=int)
 
         channel = 0
         sample_id = 0
