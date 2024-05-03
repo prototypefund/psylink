@@ -1,0 +1,28 @@
+[package]
+name = "psylink"
+license = "GPL-3.0-only"
+rust-version = "1.76.0"
+repository = "https://codeberg.org/psylink/psylink"
+homepage = "https://psylink.me"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+
+[build-dependencies]
+
+[features]
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3 # high optimizations for dependencies, but not for our code
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+incremental = false
+debug = false
+strip = true
