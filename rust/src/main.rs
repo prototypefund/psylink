@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 use tokio::time;
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = None, arg_required_else_help = true)]
 struct Cli {
     /// Display more information on the console. Can be used multiple times.
     #[arg(short, long, action = clap::ArgAction::Count)]
