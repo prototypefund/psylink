@@ -5,6 +5,7 @@ additional
 venv
 .env
 www
+target
 
 # Calibrator tool
 records.csv

@@ -8,6 +8,12 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
+btleplug = "0.11.5"
+clap = { version = "4.5.4", features = ["derive"] }
+tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thread"] }
+
+[dev-dependencies]
+tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thread"] }
 
 [build-dependencies]
 
