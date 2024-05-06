@@ -1,0 +1,24 @@
+import {
+    Button,
+    HorizontalBox,
+    StandardListView,
+    VerticalBox
+} from "std-widgets.slint";
+
+export component MainWindow inherits Window {
+    title: "PsyLink";
+    icon: @image-url("icon.svg");
+    VerticalBox {
+        HorizontalBox {
+            StandardListView {
+                model: [
+                    {text: "PsyLink 1"},
+                    {text: "PsyLink 2"},
+                ];
+            }
+            Button {
+                text: "Scan for PsyLinks";
+            }
+        }
+    }
+}

@@ -4,9 +4,10 @@ use btleplug::api::{Central, Manager as _, Peripheral, PeripheralProperties, Sca
 use btleplug::platform::Manager;
 use clap::{Parser, Subcommand};
 use tokio::time;
+slint::include_modules!();
 
 #[derive(Parser, Debug)]
-#[command(version, about, long_about = None, arg_required_else_help = true)]
+#[command(version, about, long_about = None)]
 struct Cli {
     /// Display more information on the console. Can be used multiple times.
     #[arg(short, long, action = clap::ArgAction::Count)]
@@ -24,7 +25,9 @@ struct Cli {
 enum Commands {
     /// Scan for PsyLink devices
     Scan {
-    }
+    },
+    Gui {
+    },
 }
 
 #[tokio::main]
@@ -69,7 +72,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
-        None => {}
+        Some(Commands::Gui { }) | None => {
+            let app = MainWindow::new().unwrap();
+            app.run().unwrap();
+        }
     }
 
     Ok(())
