@@ -20,7 +20,7 @@ tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thre
 slint-build = "1.5"
 
 [features]
-default = []
+default = ["gui"]
 gui = ["dep:slint"]
 
 [profile.dev]
