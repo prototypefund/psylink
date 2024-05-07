@@ -1,10 +1,12 @@
+#[cfg(feature = "gui")]
+mod gui;
+
 use std::error::Error;
 use std::time::Duration;
 use btleplug::api::{Central, Manager as _, Peripheral, PeripheralProperties, ScanFilter};
 use btleplug::platform::Manager;
 use clap::{Parser, Subcommand};
 use tokio::time;
-slint::include_modules!();
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -26,6 +28,8 @@ enum Commands {
     /// Scan for PsyLink devices
     Scan {
     },
+
+    #[cfg(feature = "gui")]
     /// Open the graphical user interface (default action)
     Gui {
     },
@@ -73,9 +77,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
+        #[cfg(feature = "gui")]
         Some(Commands::Gui { }) | None => {
-            let app = MainWindow::new().unwrap();
-            app.run().unwrap();
+            gui::start();
+        }
+        #[cfg(not(feature = "gui"))]
+        None => {
+            <Cli as clap::CommandFactory>::command().print_help()?;
         }
     }
 
