@@ -1,12 +1,9 @@
+mod bluetooth;
 #[cfg(feature = "gui")]
 mod gui;
 
 use std::error::Error;
-use std::time::Duration;
-use btleplug::api::{Central, Manager as _, Peripheral, PeripheralProperties, ScanFilter};
-use btleplug::platform::Manager;
 use clap::{Parser, Subcommand};
-use tokio::time;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -35,6 +32,13 @@ enum Commands {
     },
 }
 
+mod base {
+    pub struct Config {
+        pub verbose: u8,
+        pub scantime: f32,
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
@@ -42,40 +46,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         dbg!(&cli);
     }
 
+    let conf = base::Config {
+        verbose: cli.verbose,
+        scantime: cli.scantime,
+    };
+
     match &cli.command {
         Some(Commands::Scan { }) => {
-            println!("Scanning...");
-            let manager = Manager::new().await?;
-            let adapter_list = manager.adapters().await?;
-            if adapter_list.is_empty() {
-                eprintln!("No Bluetooth adapters found");
-            }
-
-            for adapter in adapter_list.iter() {
-                println!("Trying bluetooth adapter {}...", adapter.adapter_info().await?);
-                adapter
-                    .start_scan(ScanFilter::default())
-                    .await
-                    .expect("Can't scan BLE adapter for connected devices...");
-                time::sleep(Duration::from_secs_f32(cli.scantime)).await;
-
-                let peripherals = adapter.peripherals().await?;
-                if peripherals.is_empty() {
-                    eprintln!("No BLE peripheral devices found.");
-                } else {
-                    for peripheral in peripherals.iter() {
-                        let properties = peripheral.properties().await?;
-                        if cli.verbose > 2 {
-                            dbg!(&properties);
-                        }
-                        if let Some(PeripheralProperties { address, local_name: Some(name), .. }) = &properties {
-                            if name == "PsyLink" {
-                                println!("Found PsyLink device with address {address}");
-                            }
-                        }
-                    }
-                }
-            }
+            bluetooth::scan(conf).await?;
         }
         #[cfg(feature = "gui")]
         Some(Commands::Gui { }) | None => {
