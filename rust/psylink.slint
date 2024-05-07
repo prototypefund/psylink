@@ -8,6 +8,8 @@ import {
 export component MainWindow inherits Window {
     title: "PsyLink";
     icon: @image-url("icon.svg");
+    preferred-width: 400pt;
+    preferred-height: 500pt;
     VerticalBox {
         HorizontalBox {
             StandardListView {
@@ -19,6 +21,9 @@ export component MainWindow inherits Window {
             Button {
                 text: "Scan for PsyLinks";
             }
+        }
+        HorizontalBox {
+            height: 400pt;
         }
     }
 }
