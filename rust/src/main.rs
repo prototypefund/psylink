@@ -26,6 +26,7 @@ enum Commands {
     /// Scan for PsyLink devices
     Scan {
     },
+    /// Open the graphical user interface (default action)
     Gui {
     },
 }

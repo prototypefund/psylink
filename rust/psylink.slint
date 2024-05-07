@@ -1,6 +1,7 @@
 import {
     Button,
     HorizontalBox,
+    Spinner,
     StandardListView,
     VerticalBox
 } from "std-widgets.slint";
@@ -10,20 +11,19 @@ export component MainWindow inherits Window {
     icon: @image-url("icon.svg");
     preferred-width: 400pt;
     preferred-height: 500pt;
-    VerticalBox {
-        HorizontalBox {
-            StandardListView {
-                model: [
-                    {text: "PsyLink 1"},
-                    {text: "PsyLink 2"},
-                ];
+
+    HorizontalBox {
+        alignment: center;
+        VerticalBox {
+            alignment: center;
+            spacing: 20pt;
+            Spinner {
+                indeterminate: true;
             }
-            Button {
-                text: "Scan for PsyLinks";
+            Text {
+                horizontal-alignment: center;
+                text: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
             }
-        }
-        HorizontalBox {
-            height: 400pt;
         }
     }
 }
