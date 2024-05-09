@@ -100,6 +100,7 @@ project in your unique way, and we would not be at this point without you!
 - [ktrask](https://twitter.com/ktrask23) ([mastodon](https://chaos.social/@ktrask)): Consulting, testing
 - [PCBWay](https://pcbway.com): Sponsored production services
 - [PerlinWarp](https://twitter.com/perlinwarp): Consulting, testing, documentation, networking, financial support
+- [PrototypeFund](https://prototypefund.de): Consulting, financial support
 - Ricard Collins: Consulting, financial support, testing
 - [Wojciech Siewierski](https://einval.eu): Consulting
 - Thanks to all the patrons on [Liberapay](https://liberapay.com/psylink/) for financial support!
