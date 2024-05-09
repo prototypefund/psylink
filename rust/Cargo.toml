@@ -12,6 +12,7 @@ btleplug = "0.11.5"
 clap = { version = "4.5.4", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thread"] }
 slint = { version = "1.5", optional = true, default-features = false, features = ["accessibility", "backend-qt", "backend-winit", "compat-1-2", "renderer-software", "std"] }
+uuid = "1.6"
 
 [dev-dependencies]
 tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thread"] }

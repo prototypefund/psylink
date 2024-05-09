@@ -2945,6 +2945,7 @@ dependencies = [
  "slint",
  "slint-build",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

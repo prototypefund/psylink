@@ -1,3 +1,4 @@
+mod firmware;
 mod bluetooth;
 #[cfg(feature = "gui")]
 mod gui;
@@ -26,6 +27,10 @@ enum Commands {
     Scan {
     },
 
+    /// Write the raw data from a PsyLink to the console
+    Print {
+    },
+
     #[cfg(feature = "gui")]
     /// Open the graphical user interface (default action)
     Gui {
@@ -33,27 +38,36 @@ enum Commands {
 }
 
 mod base {
-    pub struct Config {
+    pub struct App {
         pub verbose: u8,
         pub scantime: f32,
+        pub rt: tokio::runtime::Runtime,
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if cli.verbose > 2 {
         dbg!(&cli);
     }
 
-    let conf = base::Config {
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap();
+
+    let conf = base::App {
         verbose: cli.verbose,
         scantime: cli.scantime,
+        rt: rt,
     };
 
     match &cli.command {
         Some(Commands::Scan { }) => {
-            bluetooth::scan(conf).await?;
+            let _ = bluetooth::scan(conf);
+        }
+        Some(Commands::Print { }) => {
+            let _ = bluetooth::stream(conf);
         }
         #[cfg(feature = "gui")]
         Some(Commands::Gui { }) | None => {
