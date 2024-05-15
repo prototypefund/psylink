@@ -1,4 +1,4 @@
-use crate::base;
+use crate::{base, bluetooth};
 slint::include_modules!();
 
 pub fn start(app: base::App) {
@@ -7,10 +7,14 @@ pub fn start(app: base::App) {
 
     app.rt.block_on(async {
         tokio::spawn(async move {
-            tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
-            ui_weak.upgrade_in_event_loop(move |ui| {
-                ui.set_mytext("Found PsyLink with MAC address 11:22:33:44:55:66.\n\nConnecting...".into());
-            }).unwrap();
+            loop {
+                tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+                if let Ok(device) = bluetooth::find_peripheral().await {
+                    ui_weak.upgrade_in_event_loop(move |ui| {
+                        ui.set_mytext(format!("Found PsyLink with MAC address {}.\n\nConnecting...", device.address).into());
+                    }).unwrap();
+                }
+            }
         });
     });
     ui.run().unwrap();

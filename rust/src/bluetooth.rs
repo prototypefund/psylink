@@ -10,6 +10,13 @@ use crate::{base, firmware};
 //    manager: Manager,
 //}
 
+#[derive(Clone)]
+pub struct Device {
+    pub name: String,
+    pub address: String,
+    peripheral: btleplug::platform::Peripheral,
+}
+
 pub fn scan(app: base::App) -> Result<(), Box<dyn Error>> {
     println!("Scanning...");
 
@@ -103,44 +110,43 @@ pub fn stream(app: base::App) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn find_peripheral(app: base::App) -> Result<btleplug::platform::Peripheral, Box<dyn Error>> {
+pub async fn find_peripheral() -> Result<Device, Box<dyn Error>> {
     println!("Scanning...");
 
-    let manager = app.rt.block_on(async { Manager::new().await })?;
-    let adapter_list = app.rt.block_on(async {manager.adapters().await })?;
+    let manager = Manager::new().await?;
+    let adapter_list = manager.adapters().await?;
     if adapter_list.is_empty() {
         eprintln!("No Bluetooth adapters found");
     }
 
-    for adapter in adapter_list.iter() {
-        println!("Trying bluetooth adapter {}...", app.rt.block_on(async { adapter.adapter_info().await })?);
-        app.rt.block_on(async {
-            adapter
-                .start_scan(ScanFilter::default())
-                .await
-                .expect("Can't scan BLE adapter for connected devices...");
-            time::sleep(Duration::from_secs_f32(app.scantime)).await;
-        });
+    loop {
+        for adapter in adapter_list.iter() {
+            println!("Trying bluetooth adapter {}...", adapter.adapter_info().await?);
+            let _ = adapter.start_scan(ScanFilter::default()).await;
+                //.expect("Can't scan BLE adapter for connected devices...");
+            time::sleep(Duration::from_secs_f32(0.1)).await;
 
-        let peripherals = app.rt.block_on(async { adapter.peripherals().await })?;
-        if peripherals.is_empty() {
-            eprintln!("No BLE peripheral devices found.");
-        } else {
-            for peripheral in peripherals.iter() {
-                let properties = app.rt.block_on(async { peripheral.properties().await })?;
-                if app.verbose > 2 {
+            let peripherals = adapter.peripherals().await?;
+            if peripherals.is_empty() {
+                eprintln!("No BLE peripheral devices found.");
+            } else {
+                for peripheral in peripherals.iter() {
+                    let properties = peripheral.properties().await?;
                     dbg!(&properties);
-                }
-                if let Some(PeripheralProperties { address, local_name: Some(name), .. }) = &properties {
-                    if name == "PsyLink" {
-                        println!("Found PsyLink device with address {address}");
-                        return Ok(peripheral.clone());
+                    if let Some(PeripheralProperties { address, local_name: Some(name), .. }) = &properties {
+                        if name == "PsyLink" {
+                            println!("Found PsyLink device with address {address}");
+                            return Ok(Device {
+                                name: name.to_string(),
+                                address: address.to_string(),
+                                peripheral: peripheral.clone(),
+                            });
+                        }
                     }
                 }
             }
         }
     }
-    return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "oh no!")));
 }
 
 //pub fn connect() {
