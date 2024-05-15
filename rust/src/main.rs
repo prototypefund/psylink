@@ -38,6 +38,7 @@ enum Commands {
 }
 
 mod base {
+    #[derive(Clone, Copy)]
     pub struct App {
         pub verbose: u8,
         pub scantime: f32,

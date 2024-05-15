@@ -63,7 +63,7 @@ pub async fn stream(app: base::App) -> Result<(), Box<dyn Error>> {
     }
     let sensor_uuid = Uuid::parse_str(firmware::SENSOR_CHARACTERISTICS_UUID).unwrap();
 
-    let psylink = find_peripheral().await?;
+    let psylink = find_peripheral(app).await?;
 
     let _ = psylink.peripheral.connect().await;
     let _ = psylink.peripheral.discover_services().await;
@@ -76,7 +76,7 @@ pub async fn stream(app: base::App) -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub async fn find_peripheral() -> Result<Device, Box<dyn Error>> {
+pub async fn find_peripheral(app: base::App) -> Result<Device, Box<dyn Error>> {
     println!("Scanning...");
 
     let manager = Manager::new().await?;
@@ -98,6 +98,9 @@ pub async fn find_peripheral() -> Result<Device, Box<dyn Error>> {
             } else {
                 for peripheral in peripherals.iter() {
                     let properties = peripheral.properties().await?;
+                    if app.verbose > 2 {
+                        dbg!(&properties);
+                    }
                     dbg!(&properties);
                     if let Some(PeripheralProperties { address, local_name: Some(name), .. }) = &properties {
                         if name == "PsyLink" {
