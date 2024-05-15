@@ -12,7 +12,6 @@ pub fn start(app: base::App) {
                 ui.set_mytext("Found PsyLink with MAC address 11:22:33:44:55:66.\n\nConnecting...".into());
             }).unwrap();
         });
-
-        ui.run().unwrap();
     });
+    ui.run().unwrap();
 }
