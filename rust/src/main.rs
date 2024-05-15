@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         #[cfg(feature = "gui")]
         Some(Commands::Gui { }) | None => {
-            gui::start();
+            gui::start(conf);
         }
         #[cfg(not(feature = "gui"))]
         None => {
