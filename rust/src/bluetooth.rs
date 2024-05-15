@@ -1,6 +1,13 @@
 use std::error::Error;
 use std::time::Duration;
-use btleplug::api::{Central, Manager as _, Peripheral, PeripheralProperties, ScanFilter};
+use btleplug::api::{
+    Central,
+    Characteristic,
+    Manager as _,
+    Peripheral,
+    PeripheralProperties,
+    ScanFilter
+};
 use btleplug::platform::Manager;
 use tokio::time;
 use uuid::Uuid;
@@ -15,6 +22,40 @@ pub struct Device {
     pub name: String,
     pub address: String,
     peripheral: btleplug::platform::Peripheral,
+    characteristics: Option<Characteristics>,
+}
+
+#[derive(Clone)]
+pub struct Characteristics {
+    channel_count: Characteristic,
+    sensor: Characteristic,
+}
+
+impl Device {
+    pub async fn find_characteristics(&mut self) {
+        let uuid_sensor = Uuid::parse_str(firmware::SENSOR_CHARACTERISTICS_UUID).unwrap();
+        let uuid_channel_count = Uuid::parse_str(firmware::CHANNEL_COUNT_CHARACTERISTICS_UUID).unwrap();
+
+        let _ = self.peripheral.connect().await;
+        let _ = self.peripheral.discover_services().await;
+        let characteristics = self.peripheral.characteristics();
+        let chr_sensor = characteristics.iter().find(|c| c.uuid == uuid_sensor).unwrap();
+        let chr_channel_count = characteristics.iter().find(|c| c.uuid == uuid_channel_count).unwrap();
+
+        self.characteristics = Some(Characteristics {
+            channel_count: chr_channel_count.clone(),
+            sensor: chr_sensor.clone(),
+        });
+    }
+
+    pub async fn read(&self) -> Result<Vec<u8>, Box<dyn Error>> {
+        if let Some(chr) = &self.characteristics {
+            Ok(self.peripheral.read(&chr.sensor).await?)
+        }
+        else {
+            Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Must load characteristics before calling read()")))
+        }
+    }
 }
 
 pub async fn scan(app: base::App) -> Result<(), Box<dyn Error>> {
@@ -109,6 +150,7 @@ pub async fn find_peripheral(app: base::App) -> Result<Device, Box<dyn Error>> {
                                 name: name.to_string(),
                                 address: address.to_string(),
                                 peripheral: peripheral.clone(),
+                                characteristics: None,
                             });
                         }
                     }
@@ -117,9 +159,3 @@ pub async fn find_peripheral(app: base::App) -> Result<Device, Box<dyn Error>> {
         }
     }
 }
-
-//pub fn connect() {
-//}
-//
-//pub fn get_current_scan_results() {
-//}
