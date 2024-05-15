@@ -11,6 +11,7 @@ export component MainWindow inherits Window {
     icon: @image-url("icon.svg");
     preferred-width: 400pt;
     preferred-height: 500pt;
+    in property <string> mytext: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
 
     HorizontalBox {
         alignment: center;
@@ -22,7 +23,7 @@ export component MainWindow inherits Window {
             }
             Text {
                 horizontal-alignment: center;
-                text: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
+                text: mytext;
             }
         }
     }
