@@ -12,7 +12,10 @@ pub async fn start(app: base::App) {
             if let Ok(device) = bluetooth::find_peripheral(appclone).await {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                    ui.set_mytext(format!("Found PsyLink with MAC address {address}.\n\nConnecting...").into());
+                    ui.set_mytext(
+                        format!("Found PsyLink with MAC address {address}.\n\nConnecting...")
+                            .into(),
+                    );
                 });
                 break device;
             }

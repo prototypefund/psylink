@@ -1,10 +1,10 @@
-mod firmware;
 mod bluetooth;
+mod firmware;
 #[cfg(feature = "gui")]
 mod gui;
 
-use std::error::Error;
 use clap::{Parser, Subcommand};
+use std::error::Error;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -24,17 +24,14 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Scan for PsyLink devices
-    Scan {
-    },
+    Scan {},
 
     /// Write the raw data from a PsyLink to the console
-    Print {
-    },
+    Print {},
 
     #[cfg(feature = "gui")]
     /// Open the graphical user interface (default action)
-    Gui {
-    },
+    Gui {},
 }
 
 mod base {
@@ -58,14 +55,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     };
 
     match &cli.command {
-        Some(Commands::Scan { }) => {
+        Some(Commands::Scan {}) => {
             bluetooth::scan(conf).await?;
         }
-        Some(Commands::Print { }) => {
+        Some(Commands::Print {}) => {
             bluetooth::stream(conf).await?;
         }
         #[cfg(feature = "gui")]
-        Some(Commands::Gui { }) | None => {
+        Some(Commands::Gui {}) | None => {
             gui::start(conf).await;
         }
         #[cfg(not(feature = "gui"))]
