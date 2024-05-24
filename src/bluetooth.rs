@@ -22,7 +22,7 @@ pub struct Device {
 
 #[derive(Clone)]
 pub struct Characteristics {
-    channel_count: Characteristic,
+    _channel_count: Characteristic,
     sensor: Characteristic,
 }
 
@@ -45,7 +45,7 @@ impl Device {
             .unwrap();
 
         self.characteristics = Some(Characteristics {
-            channel_count: chr_channel_count.clone(),
+            _channel_count: chr_channel_count.clone(),
             sensor: chr_sensor.clone(),
         });
     }
