@@ -6,11 +6,11 @@ import {
     VerticalBox
 } from "std-widgets.slint";
 
-import "./Signika-VariableFont.ttf";
+import "data/Signika-VariableFont.ttf";
 
 export component MainWindow inherits Window {
     title: "PsyLink";
-    icon: @image-url("icon.svg");
+    icon: @image-url("data/icon.svg");
     preferred-width: 400pt;
     preferred-height: 500pt;
     in property <string> mytext: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
