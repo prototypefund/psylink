@@ -2,6 +2,7 @@
 pub const SAMPLE_DELAY_PARAM_A: f64 = -11.3384217;
 pub const SAMPLE_DELAY_PARAM_B: f64 = 1.93093431;
 pub const SAMPLE_VALUE_OFFSET: i32 = -127;
+pub const HEADER_LEN: i32 = 8;
 
 pub struct Decoder {
     last_tick: Option<u32>,
@@ -52,6 +53,8 @@ impl Decoder {
             0
         };
 
+        let sample_count: u32 = ((packet.len() as i32).saturating_sub(HEADER_LEN) / self.channel_count as i32) as u32;
+
         self.last_tick = Some(tick);
 
         return Ok(Packet {
@@ -59,7 +62,7 @@ impl Decoder {
             tick,
             min_sampling_delay,
             max_sampling_delay,
-            sample_count: 1,               // TODO
+            sample_count,
             samples: vec![packet.clone()], // TODO
             is_duplicate,
             lost_packets,
@@ -122,6 +125,7 @@ fn test_decoding() {
 
     assert_eq!(packet.channel_count, channel_count);
     assert_eq!(packet.tick, 45);
+    assert_eq!(packet.sample_count, 200 / channel_count);
     assert_eq!(packet.is_duplicate, false);
     approx_eq::assert_approx_eq!(packet.min_sampling_delay, 595.779, 1e-3);
     approx_eq::assert_approx_eq!(packet.max_sampling_delay, 4728.708, 1e-3);
