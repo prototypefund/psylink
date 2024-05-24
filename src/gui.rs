@@ -52,13 +52,8 @@ pub async fn start(app: base::App) {
             let packet = packet.unwrap();
             plotter.insert(&packet.samples);
 
-            let mut string = String::new();
-            for data in &packet.samples {
-                string += format!("{data:?}\n").as_str();
-            }
             let cloned_plotter = plotter.clone();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                ui.set_datatext(string.into());
                 ui.set_graph0(cloned_plotter.render());
             });
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
