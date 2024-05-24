@@ -51,7 +51,7 @@ pub async fn start(app: base::App) {
             for data in &packet.samples {
                 string += format!("{data:?}\n").as_str();
             }
-            let signal_data = packet.samples[0].clone();
+            let signal_data = packet.samples.clone();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_datatext(string.into());
                 ui.set_graph0(render_plot(signal_data));
@@ -62,7 +62,7 @@ pub async fn start(app: base::App) {
     ui.run().unwrap();
 }
 
-fn render_plot(signal_data: Vec<u8>) -> slint::Image {
+fn render_plot(signal_data: Vec<Vec<u8>>) -> slint::Image {
     let mut pixel_buffer = SharedPixelBuffer::new(800, 300);
     let size = (pixel_buffer.width(), pixel_buffer.height());
     let backend = BitMapBackend::with_buffer(pixel_buffer.make_mut_bytes(), size);
@@ -70,20 +70,22 @@ fn render_plot(signal_data: Vec<u8>) -> slint::Image {
     root.fill(&WHITE).expect("error filling drawing area");
 
     let mut chart = ChartBuilder::on(&root)
-        .build_cartesian_2d(0.0..30.0, 0.0..255.0)
+        .build_cartesian_2d(0.0..30.0, -127.0..127.0)
         .expect("error building coordinate system");
 
     chart.configure_mesh().draw().expect("error drawing");
 
-    chart
-        .draw_series(LineSeries::new(
-            signal_data
-                .iter()
-                .enumerate()
-                .map(|(i, x)| (i as f64, *x as f64)),
-            &RED,
-        ))
-        .expect("error drawing series");
+    for samples in signal_data {
+        chart
+            .draw_series(LineSeries::new(
+                samples
+                    .iter()
+                    .enumerate()
+                    .map(|(i, x)| (i as f64, *x as f64 - 127.0)),
+                &RED,
+            ))
+            .expect("error drawing series");
+    }
 
     root.present().expect("error presenting");
     drop(chart);
