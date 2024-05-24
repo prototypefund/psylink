@@ -44,6 +44,16 @@ impl Decoder {
             false
         };
 
+        let lost_packets: u32 = if let Some(last_tick) = self.last_tick {
+            if tick > last_tick { tick } else { tick + 255 }
+                .saturating_sub(last_tick)
+                .saturating_sub(1)
+        } else {
+            0
+        };
+
+        self.last_tick = Some(tick);
+
         return Ok(Packet {
             channel_count: self.channel_count,
             tick,
@@ -52,7 +62,7 @@ impl Decoder {
             sample_count: 1,               // TODO
             samples: vec![packet.clone()], // TODO
             is_duplicate,
-            lost_packets: 0,               // TODO
+            lost_packets,
         });
     }
 }
@@ -63,7 +73,6 @@ impl Decoder {
 fn decompress_delay(delay_byte: u8) -> (f64, f64) {
     let min_delay = (delay_byte & 0xf0) >> 4;
     let max_delay = delay_byte & 0x0f;
-    println!("min: {min_delay}, max: {max_delay}");
     return (
         decompress_delay_4bit(min_delay),
         decompress_delay_4bit(max_delay),
@@ -79,7 +88,7 @@ fn decompress_delay_4bit(delay_4bit: u8) -> f64 {
 fn test_decoding() {
     let channel_count = 8;
     let mut decoder = Decoder::new(channel_count);
-    let packet_data: Vec<u8> = vec![
+    let packet_data_1: Vec<u8> = vec![
         45, 21, 127, 124, 126, 175, 122, 239, 122, 6, 139, 110, 128, 131, 94, 116, 123, 205, 159,
         103, 128, 136, 90, 133, 120, 203, 144, 104, 85, 136, 86, 133, 121, 6, 143, 130, 130, 139,
         94, 146, 122, 205, 138, 130, 128, 137, 95, 132, 124, 205, 144, 138, 127, 139, 94, 138, 122,
@@ -92,8 +101,22 @@ fn test_decoding() {
         83, 137, 88, 133, 121, 205, 148, 100, 90, 136, 89, 133, 121, 22, 144, 128, 128, 138, 95,
         143, 122, 205, 159, 115, 126, 138, 94, 147, 120, 205, 147, 102, 82, 136, 88, 133,
     ];
+    let packet_data_2: Vec<u8> = vec![
+        47, 21, 127, 124, 126, 174, 129, 240, 122, 27, 139, 116, 82, 134, 103, 127, 123, 205, 140,
+        106, 86, 136, 103, 129, 122, 205, 142, 108, 86, 137, 104, 127, 122, 205, 142, 108, 86, 135,
+        106, 127, 122, 205, 145, 106, 87, 135, 106, 127, 123, 205, 155, 118, 125, 140, 103, 128,
+        123, 205, 154, 120, 124, 140, 103, 129, 123, 205, 157, 111, 124, 140, 103, 128, 124, 205,
+        138, 131, 124, 137, 102, 128, 124, 205, 154, 120, 124, 140, 102, 129, 124, 205, 151, 120,
+        123, 140, 101, 129, 121, 205, 140, 121, 124, 139, 99, 130, 123, 205, 142, 108, 82, 136,
+        105, 127, 121, 12, 139, 120, 126, 133, 103, 128, 122, 205, 144, 109, 83, 135, 105, 127,
+        122, 205, 151, 106, 102, 135, 104, 127, 124, 205, 152, 106, 100, 134, 104, 127, 121, 184,
+        139, 130, 125, 137, 100, 130, 122, 205, 138, 123, 124, 138, 100, 129, 122, 12, 138, 131,
+        125, 131, 104, 125, 123, 205, 155, 107, 124, 135, 105, 126, 124, 205, 153, 106, 124, 135,
+        104, 126, 122, 191, 140, 122, 124, 137, 101, 129, 122, 12, 139, 132, 124, 136, 101, 130,
+        124, 205, 153, 106, 125, 136, 103, 127,
+    ];
 
-    let packet = decoder.decode_packet(packet_data);
+    let packet = decoder.decode_packet(packet_data_1);
     assert!(packet.is_ok());
     let packet = packet.unwrap();
 
@@ -102,4 +125,11 @@ fn test_decoding() {
     assert_eq!(packet.is_duplicate, false);
     approx_eq::assert_approx_eq!(packet.min_sampling_delay, 595.779, 1e-3);
     approx_eq::assert_approx_eq!(packet.max_sampling_delay, 4728.708, 1e-3);
+    assert_eq!(packet.lost_packets, 0);
+
+    let packet = decoder.decode_packet(packet_data_2);
+    assert!(packet.is_ok());
+    let packet = packet.unwrap();
+    assert_eq!(packet.tick, 47);
+    assert_eq!(packet.lost_packets, 1); // packet 46 was missing
 }
