@@ -63,26 +63,33 @@ pub async fn start(app: base::App) {
 }
 
 fn render_plot(signal_data: Vec<Vec<u8>>) -> slint::Image {
-    let mut pixel_buffer = SharedPixelBuffer::new(800, 300);
+    let mut pixel_buffer = SharedPixelBuffer::new(800, 600);
     let size = (pixel_buffer.width(), pixel_buffer.height());
     let backend = BitMapBackend::with_buffer(pixel_buffer.make_mut_bytes(), size);
     let root = backend.into_drawing_area();
     root.fill(&WHITE).expect("error filling drawing area");
 
     let mut chart = ChartBuilder::on(&root)
-        .build_cartesian_2d(0.0..30.0, -127.0..127.0)
+        .build_cartesian_2d(0.0..30.0, -800.0..100.0)
         .expect("error building coordinate system");
 
     chart.configure_mesh().draw().expect("error drawing");
 
-    for samples in signal_data {
+    for (channel, samples) in signal_data.iter().enumerate() {
         chart
             .draw_series(LineSeries::new(
-                samples
-                    .iter()
-                    .enumerate()
-                    .map(|(i, x)| (i as f64, *x as f64 - 127.0)),
-                &RED,
+                samples.iter().enumerate().map(|(i, x)| {
+                    (
+                        i as f64,
+                        (*x as f64 - 127.0) / 1.27 - 100.0 * channel as f64,
+                    )
+                }),
+                &match channel % 4 {
+                    0 => RED,
+                    1 => CYAN,
+                    2 => MAGENTA,
+                    _ => GREEN,
+                },
             ))
             .expect("error drawing series");
     }
