@@ -8,6 +8,10 @@ import {
 
 import "data/Signika-VariableFont.ttf";
 
+export global Logic {
+    pure callback render_signal(int) -> image;
+}
+
 export component LoadingPage {
     in property <string> statustext;
     HorizontalBox {
@@ -43,10 +47,12 @@ export component GraphPage {
                 horizontal-alignment: center;
                 text: datatext;
             }
+            Image {
+                source: Logic.render_signal(0);
+            }
         }
     }
 }
-
 
 export component MainWindow inherits Window {
     title: "PsyLink";
