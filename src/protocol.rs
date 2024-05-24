@@ -26,12 +26,12 @@ impl Decoder {
         }
     }
 
-    fn decode_packet(&mut self, packet: Vec<u8>) -> Result<Packet, String> {
-        let tick: i32 = *packet
+    fn decode_packet(&mut self, raw_packet_payload: Vec<u8>) -> Result<Packet, String> {
+        let tick: i32 = *raw_packet_payload
             .get(0)
             .ok_or("Failed to decode packet, no Tick supplied")? as i32;
 
-        let delay_byte: u8 = *packet
+        let delay_byte: u8 = *raw_packet_payload
             .get(1)
             .ok_or("Failed to decode packet, no sampling delay byte supplied")?;
 
@@ -51,10 +51,22 @@ impl Decoder {
             0
         };
 
-        let sample_count: i32 = (packet.len() as i32).saturating_sub(firmware::PROTOCOL_HEADER_LEN)
+        let sample_count: i32 = (raw_packet_payload.len() as i32)
+            .saturating_sub(firmware::PROTOCOL_HEADER_LEN)
             / self.channel_count;
 
         self.last_tick = Some(tick);
+
+        let samples: Vec<Vec<u8>> = (0..self.channel_count)
+            .map(|channel_index| {
+                raw_packet_payload
+                    .iter()
+                    .skip((firmware::PROTOCOL_HEADER_LEN + channel_index) as usize)
+                    .step_by(self.channel_count as usize)
+                    .cloned()
+                    .collect()
+            })
+            .collect();
 
         return Ok(Packet {
             channel_count: self.channel_count,
@@ -62,7 +74,7 @@ impl Decoder {
             min_sampling_delay,
             max_sampling_delay,
             sample_count,
-            samples: vec![packet.clone()], // TODO
+            samples,
             is_duplicate,
             lost_packets,
         });
@@ -129,7 +141,20 @@ fn test_decoding() {
     approx_eq::assert_approx_eq!(packet.min_sampling_delay, 595.779, 1e-3);
     approx_eq::assert_approx_eq!(packet.max_sampling_delay, 4728.708, 1e-3);
     assert_eq!(packet.lost_packets, 0);
-
+    assert_eq!(
+        packet.samples[0],
+        vec![
+            122, 123, 120, 121, 122, 124, 122, 121, 123, 121, 122, 124, 121, 121, 121, 121, 122,
+            123, 122, 124, 122, 121, 121, 122, 120
+        ]
+    );
+    assert_eq!(
+        packet.samples[7],
+        vec![
+            116, 133, 133, 146, 132, 138, 108, 119, 119, 124, 120, 148, 134, 124, 133, 131, 143,
+            156, 132, 145, 133, 133, 143, 147, 133
+        ]
+    );
     let packet = decoder.decode_packet(packet_data_2);
     assert!(packet.is_ok());
     let packet = packet.unwrap();
