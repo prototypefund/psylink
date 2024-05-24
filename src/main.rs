@@ -2,6 +2,8 @@ mod bluetooth;
 mod firmware;
 #[cfg(feature = "gui")]
 mod gui;
+#[allow(dead_code)]
+mod protocol;
 
 use clap::{Parser, Subcommand};
 use std::error::Error;
