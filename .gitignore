@@ -10,8 +10,8 @@ target
 # Calibrator tool
 records.csv
 save_*
-python/save
-python/save_*
+archive/7_python/save
+archive/7_python/save_*
 
 # TensorFlow
 model.tf
@@ -31,4 +31,4 @@ schematics/*.net
 schematics/fp-lib-table
 
 # GNURadio
-gnuradio/*/*.py
+archive/6_gnuradio/*/*.py
