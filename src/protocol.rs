@@ -1,8 +1,6 @@
-// Keep these in sync with arduino code.
-pub const SAMPLE_DELAY_PARAM_A: f64 = -11.3384217;
-pub const SAMPLE_DELAY_PARAM_B: f64 = 1.93093431;
+use crate::firmware;
+
 pub const SAMPLE_VALUE_OFFSET: i32 = -127;
-pub const HEADER_LEN: i32 = 8;
 
 pub struct Decoder {
     last_tick: Option<i32>,
@@ -53,8 +51,8 @@ impl Decoder {
             0
         };
 
-        let sample_count: i32 =
-            (packet.len() as i32).saturating_sub(HEADER_LEN) / self.channel_count;
+        let sample_count: i32 = (packet.len() as i32).saturating_sub(firmware::PROTOCOL_HEADER_LEN)
+            / self.channel_count;
 
         self.last_tick = Some(tick);
 
@@ -85,7 +83,7 @@ fn decompress_delay(delay_byte: u8) -> (f64, f64) {
 
 #[inline]
 fn decompress_delay_4bit(delay_4bit: u8) -> f64 {
-    ((delay_4bit as f64 - SAMPLE_DELAY_PARAM_A) / SAMPLE_DELAY_PARAM_B).exp()
+    ((delay_4bit as f64 - firmware::SAMPLE_DELAY_PARAM_A) / firmware::SAMPLE_DELAY_PARAM_B).exp()
 }
 
 #[test]
