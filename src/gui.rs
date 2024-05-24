@@ -25,9 +25,6 @@ pub async fn start(app: base::App) {
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_statustext(format!("Displaying PsyLink signals.").into());
             ui.set_page(1);
-            ui.global::<Logic>().on_render_signal(|_channel_index| -> slint::Image {
-                slint::Image::load_from_svg_data(include_str!("data/icon.svg").as_bytes()).unwrap()
-            });
         });
         let mut decoder = protocol::Decoder::new(8);
 
@@ -50,6 +47,9 @@ pub async fn start(app: base::App) {
             }
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_datatext(string.into());
+                ui.set_graph0(
+                    slint::Image::load_from_svg_data(include_str!("data/icon.svg").as_bytes()).unwrap()
+                );
             });
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
         }
