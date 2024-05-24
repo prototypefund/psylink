@@ -4,7 +4,7 @@ pub const SAMPLE_DELAY_PARAM_B: f64 = 1.93093431;
 pub const SAMPLE_VALUE_OFFSET: i32 = -127;
 
 pub struct Decoder {
-    last_tick: Option<u8>,
+    last_tick: Option<u32>,
     channel_count: u32,
 }
 
@@ -38,6 +38,12 @@ impl Decoder {
 
         let (min_sampling_delay, max_sampling_delay) = decompress_delay(delay_byte);
 
+        let is_duplicate = if let Some(last_tick) = self.last_tick {
+            tick == last_tick
+        } else {
+            false
+        };
+
         return Ok(Packet {
             channel_count: self.channel_count,
             tick,
@@ -45,7 +51,7 @@ impl Decoder {
             max_sampling_delay,
             sample_count: 1,               // TODO
             samples: vec![packet.clone()], // TODO
-            is_duplicate: false,           // TODO
+            is_duplicate,
             lost_packets: 0,               // TODO
         });
     }
