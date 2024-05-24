@@ -8,14 +8,8 @@ import {
 
 import "data/Signika-VariableFont.ttf";
 
-export component MainWindow inherits Window {
-    title: "PsyLink";
-    icon: @image-url("data/icon.svg");
-    preferred-width: 400pt;
-    preferred-height: 500pt;
-    default-font-family: "Signika";
-    in property <string> mytext: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
-
+export component LoadingPage {
+    in property <string> statustext;
     HorizontalBox {
         alignment: center;
         VerticalBox {
@@ -26,8 +20,49 @@ export component MainWindow inherits Window {
             }
             Text {
                 horizontal-alignment: center;
-                text: mytext;
+                text: statustext;
             }
         }
+    }
+}
+
+export component GraphPage {
+    in property <string> statustext;
+    in property <string> datatext;
+
+    HorizontalBox {
+        alignment: center;
+        VerticalBox {
+            alignment: center;
+            spacing: 20pt;
+            Text {
+                horizontal-alignment: center;
+                text: statustext;
+            }
+            Text {
+                horizontal-alignment: center;
+                text: datatext;
+            }
+        }
+    }
+}
+
+
+export component MainWindow inherits Window {
+    title: "PsyLink";
+    icon: @image-url("data/icon.svg");
+    preferred-width: 400pt;
+    preferred-height: 500pt;
+    default-font-family: "Signika";
+    in property <string> statustext: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
+    in property <string> datatext: "<No data received yet>";
+    in property <int> page: 0;
+
+    if(page == 0) : LoadingPage {
+        statustext: statustext;
+    }
+    if(page == 1) : GraphPage {
+        statustext: statustext;
+        datatext: datatext;
     }
 }

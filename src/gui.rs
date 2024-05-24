@@ -12,7 +12,7 @@ pub async fn start(app: base::App) {
             if let Ok(device) = bluetooth::find_peripheral(appclone).await {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                    ui.set_mytext(
+                    ui.set_statustext(
                         format!("Found PsyLink with MAC address {address}.\n\nConnecting...")
                             .into(),
                     );
@@ -22,6 +22,10 @@ pub async fn start(app: base::App) {
         };
         device.find_characteristics().await;
 
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            ui.set_statustext(format!("Displaying PsyLink signals.").into());
+            ui.set_page(1);
+        });
         let mut decoder = protocol::Decoder::new(8);
 
         loop {
@@ -42,7 +46,7 @@ pub async fn start(app: base::App) {
                 string += format!("{data:?}\n").as_str();
             }
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                ui.set_mytext(string.into());
+                ui.set_datatext(string.into());
             });
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
         }
