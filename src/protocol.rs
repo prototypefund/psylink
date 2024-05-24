@@ -7,6 +7,7 @@ pub struct Decoder {
     channel_count: i32,
 }
 
+#[derive(Debug)]
 pub struct Packet {
     pub channel_count: i32,
     pub tick: i32,
@@ -19,14 +20,14 @@ pub struct Packet {
 }
 
 impl Decoder {
-    fn new(channel_count: i32) -> Decoder {
+    pub fn new(channel_count: i32) -> Decoder {
         Self {
             last_tick: None,
             channel_count,
         }
     }
 
-    fn decode_packet(&mut self, raw_packet_payload: Vec<u8>) -> Result<Packet, String> {
+    pub fn decode_packet(&mut self, raw_packet_payload: Vec<u8>) -> Result<Packet, String> {
         let tick: i32 = *raw_packet_payload
             .get(0)
             .ok_or("Failed to decode packet, no Tick supplied")? as i32;

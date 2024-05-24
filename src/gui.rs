@@ -1,4 +1,4 @@
-use crate::{base, bluetooth};
+use crate::{base, bluetooth, protocol};
 slint::include_modules!();
 
 pub async fn start(app: base::App) {
@@ -22,18 +22,24 @@ pub async fn start(app: base::App) {
         };
         device.find_characteristics().await;
 
+        let mut decoder = protocol::Decoder::new(8);
+
         loop {
-            let bytearray: Vec<u8> = device.read().await.unwrap();
+            let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             let text = bytearray.iter().map(|n| n.to_string()).collect::<Vec<String>>().join(", ");
-            println!("Data: {};", text);
+            println!("Received BLE payload: {};", text);
+
+            let packet = decoder.decode_packet(bytearray);
+            if packet.is_err() {
+                let message: String = packet.unwrap_err();
+                println!("Error: {message}");
+                continue;
+            }
+            let packet = packet.unwrap();
+
             let mut string = String::new();
-            for (i, byte) in bytearray.iter().enumerate() {
-                string += byte.to_string().as_str();
-                if i % 20 == 19 {
-                    string += ",\n";
-                } else {
-                    string += ", ";
-                }
+            for data in packet.samples {
+                string += format!("{data:?}\n").as_str();
             }
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_mytext(string.into());
