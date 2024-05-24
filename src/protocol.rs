@@ -5,23 +5,23 @@ pub const SAMPLE_VALUE_OFFSET: i32 = -127;
 pub const HEADER_LEN: i32 = 8;
 
 pub struct Decoder {
-    last_tick: Option<u32>,
-    channel_count: u32,
+    last_tick: Option<i32>,
+    channel_count: i32,
 }
 
 pub struct Packet {
-    pub channel_count: u32,
-    pub tick: u32,
+    pub channel_count: i32,
+    pub tick: i32,
     pub min_sampling_delay: f64,
     pub max_sampling_delay: f64,
-    pub sample_count: u32,
+    pub sample_count: i32,
     pub samples: Vec<Vec<u8>>,
     pub is_duplicate: bool,
-    pub lost_packets: u32,
+    pub lost_packets: i32,
 }
 
 impl Decoder {
-    fn new(channel_count: u32) -> Decoder {
+    fn new(channel_count: i32) -> Decoder {
         Self {
             last_tick: None,
             channel_count,
@@ -29,9 +29,9 @@ impl Decoder {
     }
 
     fn decode_packet(&mut self, packet: Vec<u8>) -> Result<Packet, String> {
-        let tick: u32 = *packet
+        let tick: i32 = *packet
             .get(0)
-            .ok_or("Failed to decode packet, no Tick supplied")? as u32;
+            .ok_or("Failed to decode packet, no Tick supplied")? as i32;
 
         let delay_byte: u8 = *packet
             .get(1)
@@ -45,7 +45,7 @@ impl Decoder {
             false
         };
 
-        let lost_packets: u32 = if let Some(last_tick) = self.last_tick {
+        let lost_packets: i32 = if let Some(last_tick) = self.last_tick {
             if tick > last_tick { tick } else { tick + 255 }
                 .saturating_sub(last_tick)
                 .saturating_sub(1)
@@ -53,7 +53,8 @@ impl Decoder {
             0
         };
 
-        let sample_count: u32 = ((packet.len() as i32).saturating_sub(HEADER_LEN) / self.channel_count as i32) as u32;
+        let sample_count: i32 =
+            (packet.len() as i32).saturating_sub(HEADER_LEN) / self.channel_count;
 
         self.last_tick = Some(tick);
 
