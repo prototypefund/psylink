@@ -107,7 +107,7 @@ project in your unique way, and we would not be at this point without you!
 
 # License
 
-Copyright (C) 2023  Roman Zimbelmann
+Copyright (C) 2024  Roman Zimbelmann
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 as
