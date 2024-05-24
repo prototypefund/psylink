@@ -24,6 +24,8 @@ pub async fn start(app: base::App) {
 
         loop {
             let bytearray: Vec<u8> = device.read().await.unwrap();
+            let text = bytearray.iter().map(|n| n.to_string()).collect::<Vec<String>>().join(", ");
+            println!("Data: {};", text);
             let mut string = String::new();
             for (i, byte) in bytearray.iter().enumerate() {
                 string += byte.to_string().as_str();

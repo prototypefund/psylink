@@ -227,6 +227,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "approx_eq"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3f9eb837c6a783fbf002e3e5cc7925a3aa6893d6d42f9169517528983777590"
+
+[[package]]
 name = "arrayref"
 version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -516,7 +522,7 @@ dependencies = [
  "bitflags 2.5.0",
  "cexpr",
  "clang-sys",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "lazycell",
  "log",
@@ -2940,6 +2946,7 @@ dependencies = [
 name = "psylink"
 version = "0.1.0"
 dependencies = [
+ "approx_eq",
  "btleplug",
  "clap",
  "slint",
