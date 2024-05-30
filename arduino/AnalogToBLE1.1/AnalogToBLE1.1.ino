@@ -1,6 +1,9 @@
 // Dependencies: (Install in ArduinoIDE by clicking on Tools -> Manage Libraries...)
-// 1. ArduinoBLE
-// 2. Arduino_LSM9DS1
+// 0. Arduino IDE 1.8.19
+// 1. ArduinoBLE 1.2.1
+// 2. Arduino_LSM9DS1 1.1.0
+//
+// Other versions will likely work as well.
 
 // Feature flags
 #define SEND_METRICS true
