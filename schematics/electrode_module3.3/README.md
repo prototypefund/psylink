@@ -20,7 +20,8 @@ The processing of the signal is the following, implemented 4 times on the circui
 - Bill of materials: [LibreOffice .ods file](https://psylink.me/tables/bom_p10.ods)
 - Components of interest:
     - [INA128](https://www.ti.com/product/INA128) Instrumentation Amplifier [(datasheet)](https://www.ti.com/lit/ds/symlink/ina128.pdf)
-    - [M3 dome nuts, A2 stainless steel](https://www.schraubenking.at/M3-Hutmutter-DIN1587-Edelstahl-A2-P002263), as electrodes
+    - [(091723) DIN 917, A2 stainless steel, M3 dome nuts](https://www.schraubenhimmel.de/muttern/hutmuttern/niedrige-form/21596/din-917-a2-m-3-hutmuttern-niedrige-form), as electrodes
+    - [DIN 7985 A2 M3x4 screws](https://www.schraubenhimmel.de/schrauben/linsenkopf/metrisch-kreuzschlitz/31664/din-7985-edelstahl-a2-m-3x4-linsenschrauben-mit-kreuzschlitz-h)
 - Known bugs:
     - Excessive interference on the trace between "U2" and "J3" ("out2"), resulting in a disturbed signal 2.  This mostly disappears when the module is pressed firmly onto the skin.
 

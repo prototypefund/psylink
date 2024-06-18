@@ -20,7 +20,8 @@ Though it was designed to drive PsyLink electrode modules, it can also be used s
     - [Arduino Nano 33 BLE](https://docs.arduino.cc/hardware/nano-33-ble)
     - [TSP61220](https://www.ti.com/product/TPS61220) voltage booster
     - [LM321](https://www.ti.com/product/LM321) operational amplifier (to generate reference voltage)
-    - [M3 dome nuts, A2 stainless steel](https://www.schraubenking.at/M3-Hutmutter-DIN1587-Edelstahl-A2-P002263), as ground electrodes
+    - [(091723) DIN 917, A2 stainless steel, M3 dome nuts](https://www.schraubenhimmel.de/muttern/hutmuttern/niedrige-form/21596/din-917-a2-m-3-hutmuttern-niedrige-form), as electrodes
+    - [DIN 7985 A2 M3x4 screws](https://www.schraubenhimmel.de/schrauben/linsenkopf/metrisch-kreuzschlitz/31664/din-7985-edelstahl-a2-m-3x4-linsenschrauben-mit-kreuzschlitz-h)
     - [Keystone 82](https://www.mouser.com/ProductDetail/Keystone-Electronics/82?qs=l8Mz4RVwyfmSZm0sgmbamA%3D%3D) AAA Battery clip
 - Known bugs:
     - Power LED (D1) drains a lot of power. Mitigate this by increasing the resistor (R5) or removing the LED entirely - there is another power LED on the Arduino anyway.
