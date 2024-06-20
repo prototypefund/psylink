@@ -10,18 +10,30 @@ import "data/Signika-VariableFont.ttf";
 
 export component LoadingPage {
     in property <string> statustext;
-    HorizontalBox {
-        alignment: center;
-        VerticalBox {
+    FocusScope {
+        HorizontalBox {
             alignment: center;
-            spacing: 20pt;
-            Spinner {
-                indeterminate: true;
+            VerticalBox {
+                alignment: center;
+                spacing: 20pt;
+                Spinner {
+                    indeterminate: true;
+                }
+                Text {
+                    horizontal-alignment: center;
+                    text: statustext;
+                }
             }
-            Text {
-                horizontal-alignment: center;
-                text: statustext;
-            }
+        }
+        key-pressed(event) => {
+            debug("Key pressed:");
+            debug(event.text);
+            accept
+        }
+        key-released(event) => {
+            debug("Key released:");
+            debug(event.text);
+            accept
         }
     }
 }
