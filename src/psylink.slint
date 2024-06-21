@@ -8,32 +8,27 @@ import {
 
 import "data/Signika-VariableFont.ttf";
 
+export global Logic {
+    // Parameters for key-handler:
+    // 1. string: which key was pressed/released?
+    // 2. bool: was it a key press? (as opposed to a key release)
+    pure callback key-handler(string, bool);
+}
+
 export component LoadingPage {
     in property <string> statustext;
-    FocusScope {
-        HorizontalBox {
+    HorizontalBox {
+        alignment: center;
+        VerticalBox {
             alignment: center;
-            VerticalBox {
-                alignment: center;
-                spacing: 20pt;
-                Spinner {
-                    indeterminate: true;
-                }
-                Text {
-                    horizontal-alignment: center;
-                    text: statustext;
-                }
+            spacing: 20pt;
+            Spinner {
+                indeterminate: true;
             }
-        }
-        key-pressed(event) => {
-            debug("Key pressed:");
-            debug(event.text);
-            accept
-        }
-        key-released(event) => {
-            debug("Key released:");
-            debug(event.text);
-            accept
+            Text {
+                horizontal-alignment: center;
+                text: statustext;
+            }
         }
     }
 }
@@ -47,9 +42,15 @@ export component GraphPage {
         VerticalBox {
             alignment: center;
             spacing: 20pt;
-            Text {
-                horizontal-alignment: center;
-                text: statustext;
+            HorizontalBox {
+                Text {
+                    horizontal-alignment: left;
+                    text: statustext;
+                }
+                Text {
+                    horizontal-alignment: right;
+                    text: "Pressed Keys: ";
+                }
             }
             Image {
                 source: graph0;
@@ -68,11 +69,21 @@ export component MainWindow inherits Window {
     in property <int> page: 0;
     in property <image> graph0;
 
-    if(page == 0) : LoadingPage {
-        statustext: statustext;
-    }
-    if(page == 1) : GraphPage {
-        statustext: statustext;
-        graph0: graph0;
+    FocusScope {
+        if(page == 0) : LoadingPage {
+            statustext: statustext;
+        }
+        if(page == 1) : GraphPage {
+            statustext: statustext;
+            graph0: graph0;
+        }
+        key-pressed(event) => {
+            Logic.key-handler(event.text, true);
+            accept
+        }
+        key-released(event) => {
+            Logic.key-handler(event.text, false);
+            accept
+        }
     }
 }

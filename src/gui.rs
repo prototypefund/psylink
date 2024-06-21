@@ -1,6 +1,7 @@
 use crate::{base, bluetooth, protocol};
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
+use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 slint::include_modules!();
 
@@ -9,6 +10,18 @@ const MAX_POINTS: usize = 2048;
 pub async fn start(app: base::App) {
     let ui = MainWindow::new().unwrap();
     let ui_weak = ui.as_weak();
+
+    let key_vec = Arc::new(Mutex::new(Vec::<String>::new()));
+    let key_vec_clone = Arc::clone(&key_vec);
+    let key_vec_clone2 = Arc::clone(&key_vec);
+    ui.global::<Logic>().on_key_handler(move |key: slint::SharedString, pressed: bool| {
+        {
+            let mut keys = key_vec_clone.lock().unwrap();
+            keys.push(key.clone().into());
+        }
+        //dbg!((key, pressed));
+        //dbg!(&key_vec_clone);
+    });
 
     let appclone = app.clone();
     tokio::spawn(async move {
@@ -35,6 +48,7 @@ pub async fn start(app: base::App) {
         let mut plotter = Plotter::new(8);
 
         loop {
+            dbg!(&key_vec_clone2);
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             let text = bytearray
                 .iter()
