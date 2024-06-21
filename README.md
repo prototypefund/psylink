@@ -4,7 +4,7 @@
 [![Matrix Chatroom](https://img.shields.io/badge/chat-join%20us-green.svg)](https://matrix.to/#/#psylink:matrix.org)
 [![Mastodon](https://img.shields.io/mastodon/follow/106535899613227044.svg?domain=https%3A%2F%2Ffosstodon.org&style=social)](https://fosstodon.org/@psylink)
 
-Open source [myoelectric](https://en.wikipedia.org/wiki/Electromyography) neural interface.
+Open source [EMG](https://en.wikipedia.org/wiki/Electromyography) neural interface.
 
 [Website](https://psylink.me) ::
 [Documentation](https://codeberg.org/psylink/psylink/wiki) ::
