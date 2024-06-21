@@ -2,7 +2,7 @@ use crate::{base, bluetooth, protocol};
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::sync::{Arc, Mutex};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
@@ -11,16 +11,16 @@ pub async fn start(app: base::App) {
     let ui = MainWindow::new().unwrap();
     let ui_weak = ui.as_weak();
 
-    let key_vec = Arc::new(Mutex::new(Vec::<String>::new()));
-    let key_vec_clone = Arc::clone(&key_vec);
-    let key_vec_clone2 = Arc::clone(&key_vec);
+    let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
+    let keystate_clone_writer = Arc::clone(&keystate);
+    let keystate_clone_reader = Arc::clone(&keystate);
     ui.global::<Logic>().on_key_handler(move |key: slint::SharedString, pressed: bool| {
-        {
-            let mut keys = key_vec_clone.lock().unwrap();
-            keys.push(key.clone().into());
+        let mut keystate = keystate_clone_writer.lock().unwrap();
+        if pressed {
+            keystate.insert(key.to_string());
+        } else {
+            keystate.remove(&key.to_string());
         }
-        //dbg!((key, pressed));
-        //dbg!(&key_vec_clone);
     });
 
     let appclone = app.clone();
@@ -48,7 +48,7 @@ pub async fn start(app: base::App) {
         let mut plotter = Plotter::new(8);
 
         loop {
-            dbg!(&key_vec_clone2);
+            dbg!(&keystate_clone_reader);
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             let text = bytearray
                 .iter()
