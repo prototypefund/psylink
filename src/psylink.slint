@@ -35,6 +35,7 @@ export component LoadingPage {
 
 export component GraphPage {
     in property <string> statustext;
+    in property <string> pressedkeys;
     in property <image> graph0;
 
     HorizontalBox {
@@ -49,7 +50,7 @@ export component GraphPage {
                 }
                 Text {
                     horizontal-alignment: right;
-                    text: "Pressed Keys: ";
+                    text: "Pressed Keys: " + pressedkeys;
                 }
             }
             Image {
@@ -66,6 +67,7 @@ export component MainWindow inherits Window {
     preferred-height: 500pt;
     default-font-family: "Signika";
     in property <string> statustext: "Scanning for nearby PsyLink devices...\n\nPlease make sure that your PsyLink is turned on and the battery charged.";
+    in property <string> pressedkeys: "";
     in property <int> page: 0;
     in property <image> graph0;
 
@@ -75,6 +77,7 @@ export component MainWindow inherits Window {
         }
         if(page == 1) : GraphPage {
             statustext: statustext;
+            pressedkeys: pressedkeys;
             graph0: graph0;
         }
         key-pressed(event) => {

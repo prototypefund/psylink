@@ -13,7 +13,6 @@ pub async fn start(app: base::App) {
 
     let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
     let keystate_clone_writer = Arc::clone(&keystate);
-    let keystate_clone_reader = Arc::clone(&keystate);
     ui.global::<Logic>().on_key_handler(move |key: slint::SharedString, pressed: bool| {
         let mut keystate = keystate_clone_writer.lock().unwrap();
         if pressed {
@@ -48,7 +47,6 @@ pub async fn start(app: base::App) {
         let mut plotter = Plotter::new(8);
 
         loop {
-            dbg!(&keystate_clone_reader);
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             let text = bytearray
                 .iter()
@@ -68,11 +66,18 @@ pub async fn start(app: base::App) {
             let packet = packet.unwrap();
             plotter.insert(&packet.samples);
 
-            let cloned_plotter = plotter.clone();
-            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                ui.set_graph0(cloned_plotter.render());
-            });
-            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
+            {
+                let cloned_plotter = plotter.clone();
+                let keystate_clone_reader = Arc::clone(&keystate);
+                let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                    ui.set_graph0(cloned_plotter.render());
+                    let keys = keystate_clone_reader.lock().unwrap();
+                    let mut keyvec: Vec<&String> = keys.iter().collect();
+                    keyvec.sort();
+                    ui.set_pressedkeys(keyvec.into_iter().map(|s| s.as_str()).collect::<Vec<&str>>().join("").into());
+                });
+            }
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.05)).await;
         }
     });
     ui.run().unwrap();
