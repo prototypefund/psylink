@@ -41,7 +41,9 @@ pub async fn start(app: base::App) {
                 .map(|n| n.to_string())
                 .collect::<Vec<String>>()
                 .join(", ");
-            println!("Received BLE payload: {};", text);
+            if appclone.verbose > 1 {
+                println!("Received BLE payload: {};", text);
+            }
 
             let packet = decoder.decode_packet(bytearray);
             if packet.is_err() {
