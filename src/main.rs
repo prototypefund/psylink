@@ -47,7 +47,7 @@ mod base {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
-    if cli.verbose > 2 {
+    if cli.verbose > 1 {
         dbg!(&cli);
     }
 

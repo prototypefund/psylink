@@ -72,10 +72,12 @@ pub async fn scan(app: base::App) -> Result<(), Box<dyn Error>> {
     }
 
     for adapter in adapter_list.iter() {
-        println!(
-            "Trying bluetooth adapter {}...",
-            adapter.adapter_info().await?
-        );
+        if app.verbose > 0 {
+            println!(
+                "Trying bluetooth adapter {}...",
+                adapter.adapter_info().await?
+            );
+        }
         adapter
             .start_scan(ScanFilter::default())
             .await
@@ -88,7 +90,7 @@ pub async fn scan(app: base::App) -> Result<(), Box<dyn Error>> {
         } else {
             for peripheral in peripherals.iter() {
                 let properties = peripheral.properties().await?;
-                if app.verbose > 2 {
+                if app.verbose > 1 {
                     dbg!(&properties);
                 }
                 if let Some(PeripheralProperties {
@@ -128,7 +130,9 @@ pub async fn stream(app: base::App) -> Result<(), Box<dyn Error>> {
         .unwrap();
     loop {
         let data = psylink.peripheral.read(sensor_characteristic).await?;
-        dbg!(data);
+        if app.verbose > 1 {
+            dbg!(data);
+        }
     }
 }
 
@@ -143,10 +147,12 @@ pub async fn find_peripheral(app: base::App) -> Result<Device, Box<dyn Error>> {
 
     loop {
         for adapter in adapter_list.iter() {
-            println!(
-                "Trying bluetooth adapter {}...",
-                adapter.adapter_info().await?
-            );
+            if app.verbose > 0 {
+                println!(
+                    "Trying bluetooth adapter {}...",
+                    adapter.adapter_info().await?
+                );
+            }
             let _ = adapter.start_scan(ScanFilter::default()).await;
             //.expect("Can't scan BLE adapter for connected devices...");
             time::sleep(Duration::from_secs_f32(0.1)).await;
@@ -157,10 +163,9 @@ pub async fn find_peripheral(app: base::App) -> Result<Device, Box<dyn Error>> {
             } else {
                 for peripheral in peripherals.iter() {
                     let properties = peripheral.properties().await?;
-                    if app.verbose > 2 {
+                    if app.verbose > 1 {
                         dbg!(&properties);
                     }
-                    dbg!(&properties);
                     if let Some(PeripheralProperties {
                         address,
                         local_name: Some(name),
