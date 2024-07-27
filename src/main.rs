@@ -1,9 +1,4 @@
-mod bluetooth;
-mod firmware;
-#[cfg(feature = "gui")]
-mod gui;
-#[allow(dead_code)]
-mod protocol;
+use psylink::prelude::*;
 
 use clap::{Parser, Subcommand};
 use std::error::Error;
@@ -34,14 +29,6 @@ enum Commands {
     #[cfg(feature = "gui")]
     /// Open the graphical user interface (default action)
     Gui {},
-}
-
-mod base {
-    #[derive(Clone, Copy)]
-    pub struct App {
-        pub verbose: u8,
-        pub scantime: f32,
-    }
 }
 
 #[tokio::main]
