@@ -1,3 +1,6 @@
+#![doc(html_favicon_url = "https://psylink.me/favicon.ico")]
+#![doc(html_logo_url = "https://psylink.me/favicon.ico")]
+
 pub mod bluetooth;
 pub mod firmware;
 #[cfg(feature = "gui")]
