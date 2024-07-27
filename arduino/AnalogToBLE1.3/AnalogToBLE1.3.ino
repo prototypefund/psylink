@@ -14,7 +14,7 @@
 #include <ArduinoBLE.h>       // Bluetooth Low Energy
 
 #if ARDUINO_REV2 == true
-#include "Arduino_BMI270_BMM150.h"
+#include "Arduino_BMI270_BMM150.h"  // Inertial Measurement Unit
 #else
 #include <Arduino_LSM9DS1.h>  // Inertial Measurement Unit
 #endif
