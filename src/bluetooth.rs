@@ -1,4 +1,4 @@
-use crate::{base, firmware};
+use crate::prelude::*;
 use btleplug::api::{
     Central, Characteristic, Manager as _, Peripheral, PeripheralProperties, ScanFilter,
 };
@@ -62,7 +62,7 @@ impl Device {
     }
 }
 
-pub async fn scan(app: base::App) -> Result<(), Box<dyn Error>> {
+pub async fn scan(app: App) -> Result<(), Box<dyn Error>> {
     println!("Scanning...");
 
     let manager = Manager::new().await?;
@@ -109,7 +109,7 @@ pub async fn scan(app: base::App) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub async fn stream(app: base::App) -> Result<(), Box<dyn Error>> {
+pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
     println!("Scanning...");
     let manager = Manager::new().await?;
     let adapter_list = manager.adapters().await?;
@@ -136,7 +136,7 @@ pub async fn stream(app: base::App) -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub async fn find_peripheral(app: base::App) -> Result<Device, Box<dyn Error>> {
+pub async fn find_peripheral(app: App) -> Result<Device, Box<dyn Error>> {
     println!("Scanning...");
 
     let manager = Manager::new().await?;

@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         dbg!(&cli);
     }
 
-    let conf = base::App {
+    let conf = App {
         verbose: cli.verbose,
         scantime: cli.scantime,
     };

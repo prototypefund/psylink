@@ -1,4 +1,4 @@
-use crate::{base, bluetooth, protocol};
+use crate::prelude::*;
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::sync::{Arc, Mutex};
@@ -7,7 +7,7 @@ slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
 
-pub async fn start(app: base::App) {
+pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
     let ui_weak = ui.as_weak();
 
