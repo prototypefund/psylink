@@ -26,6 +26,16 @@ slint-build = "1.5"
 [features]
 default = ["gui"]
 gui = ["dep:slint"]
+android = ["slint/backend-android-activity-06"]
+
+[lib]
+name = "psylink"
+crate-type = ["lib", "cdylib"]
+path = "src/lib.rs"
+
+[[bin]]
+name = "psylink"
+path = "src/main.rs"
 
 [profile.dev]
 opt-level = 0
@@ -37,3 +47,22 @@ codegen-units = 1
 incremental = false
 debug = false
 strip = true
+
+# Andoroid settings
+# See more: https://github.com/rust-mobile/cargo-apk?tab=readme-ov-file#manifest
+[package.metadata.android]
+package = "me.psylink.psylink"
+resources = "android-res"
+build_targets = [ "aarch64-linux-android" ]
+
+[package.metadata.android.application]
+label = "PsyLink"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.BLUETOOTH"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.BLUETOOTH_ADMIN"
+
+[[package.metadata.android.uses_permission]]
+name = "android.permission.BLUETOOTH_SCAN"
