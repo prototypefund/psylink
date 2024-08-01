@@ -25,11 +25,15 @@ pub mod prelude {
 fn android_main(app: slint::android::AndroidApp) {
     slint::android::init(app).unwrap();
 
-    // ... rest of your code ...
-    slint::slint!{
-        export component MainWindow inherits Window {
-            Text { text: "Hello World"; }
-        }
-    }
-    MainWindow::new().unwrap().run().unwrap();
+    let conf = prelude::App {
+        verbose: 0,
+        scantime: 3.0
+    };
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            gui::start(conf).await;
+        });
 }
