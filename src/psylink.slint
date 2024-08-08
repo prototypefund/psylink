@@ -3,6 +3,7 @@ import {
     HorizontalBox,
     Spinner,
     StandardListView,
+    TabWidget,
     VerticalBox
 } from "std-widgets.slint";
 
@@ -72,13 +73,22 @@ export component MainWindow inherits Window {
     in property <image> graph0;
 
     FocusScope {
-        if(page == 0) : LoadingPage {
-            statustext: statustext;
-        }
-        if(page == 1) : GraphPage {
-            statustext: statustext;
-            pressedkeys: pressedkeys;
-            graph0: graph0;
+        TabWidget {
+            current-index: page;
+            Tab {
+                title: "Connection";
+                LoadingPage {
+                    statustext: statustext;
+                }
+            }
+            Tab {
+                title: "Signals";
+                GraphPage {
+                    statustext: statustext;
+                    pressedkeys: pressedkeys;
+                    graph0: graph0;
+                }
+            }
         }
         key-pressed(event) => {
             Logic.key-handler(event.text, true);
