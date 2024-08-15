@@ -80,14 +80,14 @@ export component CalibrationPage {
             spacing: 20pt;
             HorizontalBox {
                 Button {
-                    visible: !calibrating;
+                    enabled: !calibrating;
                     text: "Start calibration for 1 action";
                     clicked => {
                         Logic.start-calibration-handler(1);
                     }
                 }
                 Button {
-                    visible: calibrating;
+                    enabled: calibrating;
                     text: "Stop calibration";
                     clicked => {
                         Logic.stop-calibration-handler();
