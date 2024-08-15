@@ -1,3 +1,12 @@
+pub struct Sample {
+    pub features: Vec<f64>,
+    pub label: u8,
+}
+
+pub struct Samples {
+    pub samples: Vec<Sample>,
+}
+
 #[derive(Clone, Default)]
 pub struct Calibrator {
     pub action_count: usize,
