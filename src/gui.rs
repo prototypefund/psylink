@@ -1,8 +1,8 @@
 use crate::prelude::*;
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
-use std::sync::{Arc, Mutex};
 use std::collections::{HashSet, VecDeque};
+use std::sync::{Arc, Mutex};
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
@@ -13,27 +13,27 @@ pub async fn start(app: App) {
     let calibrationstate = Arc::new(Mutex::new(false));
     let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
     let keystate_clone_writer = Arc::clone(&keystate);
-    ui.global::<Logic>().on_key_handler(move |key: slint::SharedString, pressed: bool| {
-        let mut keystate = keystate_clone_writer.lock().unwrap();
-        if pressed {
-            keystate.insert(key.to_string());
-        } else {
-            keystate.remove(&key.to_string());
-        }
-    });
+    ui.global::<Logic>()
+        .on_key_handler(move |key: slint::SharedString, pressed: bool| {
+            let mut keystate = keystate_clone_writer.lock().unwrap();
+            if pressed {
+                keystate.insert(key.to_string());
+            } else {
+                keystate.remove(&key.to_string());
+            }
+        });
 
     let ui_weak = ui.as_weak();
     let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
-    ui.global::<Logic>().on_start_calibration_handler(move |_actions: i32| {
-        let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
-        *calibrationstate = true;
-        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-            ui.set_calibrating(true);
-            ui.set_text_calibration_instruction(
-                format!("Calibration started.").into(),
-            );
+    ui.global::<Logic>()
+        .on_start_calibration_handler(move |_actions: i32| {
+            let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
+            *calibrationstate = true;
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                ui.set_calibrating(true);
+                ui.set_text_calibration_instruction(format!("Calibration started.").into());
+            });
         });
-    });
 
     let ui_weak = ui.as_weak();
     let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
@@ -42,9 +42,7 @@ pub async fn start(app: App) {
         *calibrationstate = false;
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(false);
-            ui.set_text_calibration_instruction(
-                format!("No calibration in progress.").into(),
-            );
+            ui.set_text_calibration_instruction(format!("No calibration in progress.").into());
         });
     });
 
@@ -68,7 +66,9 @@ pub async fn start(app: App) {
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_connected(true);
-            ui.set_text_connection_title(format!("PsyLink connection established.\n\nPlease select another tab.").into());
+            ui.set_text_connection_title(
+                format!("PsyLink connection established.\n\nPlease select another tab.").into(),
+            );
             ui.set_text_graph_title(format!("Displaying PsyLink signals.").into());
             ui.set_page(1);
         });
@@ -103,7 +103,14 @@ pub async fn start(app: App) {
                     let keys = keystate_clone_reader.lock().unwrap();
                     let mut keyvec: Vec<&String> = keys.iter().collect();
                     keyvec.sort();
-                    ui.set_pressedkeys(keyvec.into_iter().map(|s| s.as_str()).collect::<Vec<&str>>().join("").into());
+                    ui.set_pressedkeys(
+                        keyvec
+                            .into_iter()
+                            .map(|s| s.as_str())
+                            .collect::<Vec<&str>>()
+                            .join("")
+                            .into(),
+                    );
                 });
             }
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.05)).await;

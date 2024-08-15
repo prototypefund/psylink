@@ -9,9 +9,9 @@ pub mod gui;
 pub mod protocol;
 
 pub mod prelude {
-    pub use crate::{bluetooth, firmware, protocol};
     #[cfg(feature = "gui")]
     pub use crate::gui;
+    pub use crate::{bluetooth, firmware, protocol};
 
     #[derive(Clone, Copy)]
     pub struct App {
@@ -27,7 +27,7 @@ fn android_main(app: slint::android::AndroidApp) {
 
     let conf = prelude::App {
         verbose: 0,
-        scantime: 3.0
+        scantime: 3.0,
     };
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
