@@ -127,7 +127,7 @@ pub struct Calibrator {
     pub state: CalibratorState,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, PartialEq)]
 pub enum CalibratorState {
     #[default]
     Init,
@@ -140,7 +140,8 @@ pub enum CalibratorState {
 }
 
 impl Calibrator {
-    pub fn tick(&mut self, time: f64) {
+    /// returns true if a state change happened
+    pub fn tick(&mut self, time: f64) -> bool {
         if self.timer > 0.0 {
             self.timer -= time;
         }
@@ -169,8 +170,13 @@ impl Calibrator {
                 CalibratorState::GestureAction => 8.0,
             };
 
+            let state_change_happened = self.state != new_state;
             self.state = new_state;
             self.timer = delay;
+            return state_change_happened;
+        }
+        else {
+            return false;
         }
     }
 }
