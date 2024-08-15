@@ -45,6 +45,9 @@ export component LoadingPage {
 export component GraphPage {
     in property <string> statustext;
     in property <string> pressedkeys;
+    in property <string> text-calibration-instruction;
+    in property <bool> connected;
+    in property <bool> calibrating;
     in property <image> graph0;
 
     HorizontalBox {
@@ -53,35 +56,10 @@ export component GraphPage {
             alignment: center;
             spacing: 20pt;
             HorizontalBox {
-                Text {
-                    horizontal-alignment: left;
-                    text: statustext;
-                }
-                Text {
-                    horizontal-alignment: right;
-                    text: "Pressed Keys: " + pressedkeys;
-                }
-            }
-            Image {
-                source: graph0;
-            }
-        }
-    }
-}
-
-export component CalibrationPage {
-    in property <bool> calibrating;
-    in property <string> statustext;
-
-    HorizontalBox {
-        alignment: center;
-        VerticalBox {
-            alignment: center;
-            spacing: 20pt;
-            HorizontalBox {
+                alignment: start;
                 Button {
-                    enabled: !calibrating;
-                    text: "Start calibration for 1 action";
+                    enabled: !calibrating && connected;
+                    text: "Start calibration";
                     clicked => {
                         Logic.start-calibration-handler(1);
                     }
@@ -96,6 +74,14 @@ export component CalibrationPage {
             }
             Text {
                 horizontal-alignment: center;
+                text: text-calibration-instruction;
+            }
+            Image {
+                source: graph0;
+            }
+            Text {
+                horizontal-alignment: center;
+                visible: !connected;
                 text: statustext;
             }
         }
@@ -109,8 +95,8 @@ export component MainWindow inherits Window {
     preferred-height: 500pt;
     default-font-family: "Signika";
     in property <string> text-connection-title: "Scanning for nearby PsyLink devices...\n\nIs the PsyLink turned on?\nIs the battery charged?\nIs your bluetooth active?\n(try turning it off and on, if necessary)";
-    in property <string> text-graph-title: "No";
-    in property <string> text-calibration-instruction: "No calibration in progress.";
+    in property <string> text-graph-title: "Not connected";
+    in property <string> text-calibration-instruction: "";
     in property <bool> calibrating: false;
     in property <bool> connected: false;
     in property <string> pressedkeys: "";
@@ -134,16 +120,12 @@ export component MainWindow inherits Window {
             Tab {
                 title: "Signals";
                 GraphPage {
+                    calibrating: calibrating;
+                    connected: connected;
                     statustext: text-graph-title;
+                    text-calibration-instruction: text-calibration-instruction;
                     pressedkeys: pressedkeys;
                     graph0: graph0;
-                }
-            }
-            Tab {
-                title: "Calibration";
-                CalibrationPage {
-                    calibrating: calibrating;
-                    statustext: text-calibration-instruction;
                 }
             }
         }
