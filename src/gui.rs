@@ -15,6 +15,10 @@ pub async fn start(app: App) {
 
     let calibrator = Arc::new(Mutex::new(Calibrator::default()));
     let calibrationstate = Arc::new(Mutex::new(false));
+
+    // At the moment, we store the set of keys that are currently being pressed
+    // for the purpose of matching them with PsyLink signals in an upcoming feature.
+    // If this feature is never added, we can safely throw out keystate.
     let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
     let keystate_clone_writer = Arc::clone(&keystate);
 
