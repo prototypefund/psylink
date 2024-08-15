@@ -119,6 +119,62 @@ pub async fn start(app: App) {
     ui.run().unwrap();
 }
 
+#[derive(Clone, Default)]
+pub struct Calibrator {
+    pub action_count: u32,
+    pub remaining_key_presses: Vec<u32>,
+    pub timer: f64,
+    pub state: CalibratorState,
+}
+
+#[derive(Clone, Default)]
+pub enum CalibratorState {
+    #[default]
+    Init,
+    Welcome,
+    NullActionWait,
+    NullAction,
+    GestureActionWait,
+    GestureAction,
+    Done,
+}
+
+impl Calibrator {
+    pub fn tick(&mut self, time: f64) {
+        if self.timer > 0.0 {
+            self.timer -= time;
+        }
+        if self.timer <= 0.0 {
+            let new_state = match self.state {
+                CalibratorState::Init => CalibratorState::Welcome,
+                CalibratorState::Welcome => CalibratorState::NullActionWait,
+                CalibratorState::NullActionWait => CalibratorState::NullAction,
+                CalibratorState::NullAction => {
+                    if self.remaining_key_presses.iter().all(|&x| x <= 0) {
+                        CalibratorState::Done
+                    } else {
+                        CalibratorState::GestureActionWait
+                    }
+                }
+                CalibratorState::GestureActionWait => CalibratorState::GestureAction,
+                CalibratorState::GestureAction => CalibratorState::NullActionWait,
+                CalibratorState::Done => CalibratorState::Done,
+            };
+            let delay = match new_state {
+                CalibratorState::Init | CalibratorState::Done => 0.0,
+                CalibratorState::Welcome => 4.0,
+                CalibratorState::NullActionWait => 3.0,
+                CalibratorState::NullAction => 8.0,
+                CalibratorState::GestureActionWait => 4.0,
+                CalibratorState::GestureAction => 8.0,
+            };
+
+            self.state = new_state;
+            self.timer = delay;
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Plotter {
     pub data: Vec<VecDeque<f64>>,
