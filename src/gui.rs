@@ -10,6 +10,7 @@ const MAX_POINTS: usize = 2048;
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
 
+    let calibrator = Arc::new(Mutex::new(Calibrator::default()));
     let calibrationstate = Arc::new(Mutex::new(false));
     let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
     let keystate_clone_writer = Arc::clone(&keystate);
@@ -25,13 +26,16 @@ pub async fn start(app: App) {
 
     let ui_weak = ui.as_weak();
     let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
+    let calibrator_clone_writer = Arc::clone(&calibrator);
     ui.global::<Logic>()
-        .on_start_calibration_handler(move |_actions: i32| {
+        .on_start_calibration_handler(move |actions: i32| {
             let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
             *calibrationstate = true;
+            let mut calibrator = calibrator_clone_writer.lock().unwrap();
+            *calibrator = Calibrator::new(actions as usize, 3);
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_calibrating(true);
-                ui.set_text_calibration_instruction(format!("Calibration started.").into());
+                ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());
             });
         });
 
@@ -95,10 +99,38 @@ pub async fn start(app: App) {
             let packet = packet.unwrap();
             plotter.insert(&packet.samples);
 
+            let mut new_calib_message = None::<String>;
+            let mut new_calib_timer = None::<String>;
+
+            // Create a sub-scope because we must drop the MutexGuard before await
+            {
+                let calibstate = calibrationstate.lock().unwrap();
+                if *calibstate {
+                    let mut calib = calibrator.lock().unwrap();
+                    let state_changed = calib.tick(0.2);
+                    if state_changed {
+                        new_calib_message = Some(calib.generate_message());
+                    }
+                    if calib.timer > 0.0 {
+                        new_calib_timer = Some(format!("{:.1}s", calib.timer));
+                    }
+                    else {
+                        new_calib_timer = Some(String::new());
+                    }
+                }
+            }
+
+            // Create a sub-scope because we must drop the MutexGuard before await
             {
                 let cloned_plotter = plotter.clone();
                 let keystate_clone_reader = Arc::clone(&keystate);
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                    if let Some(msg) = new_calib_message {
+                        ui.set_text_calibration_instruction(msg.into());
+                    }
+                    if let Some(msg) = new_calib_timer {
+                        ui.set_text_calibration_timer(msg.into());
+                    }
                     ui.set_graph0(cloned_plotter.render());
                     let keys = keystate_clone_reader.lock().unwrap();
                     let mut keyvec: Vec<&String> = keys.iter().collect();
@@ -195,7 +227,7 @@ impl Calibrator {
     }
 
     pub fn generate_message(&self) -> String {
-        let current_action = 1;
+        let current_action = self.current_action.saturating_add(1);
         match self.state {
             CalibratorState::Init => "Initializing...".into(),
             CalibratorState::Welcome => {

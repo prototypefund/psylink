@@ -46,6 +46,7 @@ export component GraphPage {
     in property <string> statustext;
     in property <string> pressedkeys;
     in property <string> text-calibration-instruction;
+    in property <string> text-calibration-timer;
     in property <bool> connected;
     in property <bool> calibrating;
     in property <image> graph0;
@@ -72,9 +73,15 @@ export component GraphPage {
                     }
                 }
             }
-            Text {
-                horizontal-alignment: center;
-                text: text-calibration-instruction;
+            HorizontalBox {
+                Text {
+                    horizontal-alignment: center;
+                    text: text-calibration-instruction;
+                }
+                Text {
+                    horizontal-alignment: center;
+                    text: text-calibration-timer;
+                }
             }
             Image {
                 source: graph0;
@@ -97,6 +104,7 @@ export component MainWindow inherits Window {
     in property <string> text-connection-title: "Scanning for nearby PsyLink devices...\n\nIs the PsyLink turned on?\nIs the battery charged?\nIs your bluetooth active?\n(try turning it off and on, if necessary)";
     in property <string> text-graph-title: "Not connected";
     in property <string> text-calibration-instruction: "";
+    in property <string> text-calibration-timer: "";
     in property <bool> calibrating: false;
     in property <bool> connected: false;
     in property <string> pressedkeys: "";
@@ -124,6 +132,7 @@ export component MainWindow inherits Window {
                     connected: connected;
                     statustext: text-graph-title;
                     text-calibration-instruction: text-calibration-instruction;
+                    text-calibration-timer: text-calibration-timer;
                     pressedkeys: pressedkeys;
                     graph0: graph0;
                 }
