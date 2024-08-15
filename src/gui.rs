@@ -17,13 +17,24 @@ pub async fn start(app: App) {
     let calibrationstate = Arc::new(Mutex::new(false));
     let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
     let keystate_clone_writer = Arc::clone(&keystate);
+
+    let ui_weak = ui.as_weak();
     ui.global::<Logic>()
         .on_key_handler(move |key: slint::SharedString, pressed: bool| {
             let mut keystate = keystate_clone_writer.lock().unwrap();
+            let key = key.to_string();
             if pressed {
-                keystate.insert(key.to_string());
+                if key == "1" || key == "2" {
+                    let page = key.parse::<i32>().unwrap() - 1;
+                    let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                        ui.set_page(page);
+                    });
+                }
+                else {
+                    keystate.insert(key);
+                }
             } else {
-                keystate.remove(&key.to_string());
+                keystate.remove(&key);
             }
         });
 
