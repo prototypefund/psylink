@@ -117,7 +117,11 @@ export component MainWindow inherits Window {
     in property <int> page: 0;
     in property <image> graph0;
 
-    FocusScope {
+    init => {
+        focusscope.focus();
+    }
+
+    focusscope := FocusScope {
         TabWidget {
             current-index: page;
             Tab {
