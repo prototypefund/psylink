@@ -83,8 +83,28 @@ export component GraphPage {
                     text: text-calibration-timer;
                 }
             }
-            Image {
-                source: graph0;
+            HorizontalBox {
+                Image {
+                    source: graph0;
+                }
+                VerticalBox {
+                    alignment: center;
+                    visible: connected;
+                    Text { text: "EMG1"; }
+                    Text { text: "EMG2"; }
+                    Text { text: "EMG3"; }
+                    Text { text: "EMG4"; }
+                    Text { text: "EMG5"; }
+                    Text { text: "EMG6"; }
+                    Text { text: "EMG7"; }
+                    Text { text: "EMG8"; }
+                    Text { text: "Gyro1"; }
+                    Text { text: "Gyro2"; }
+                    Text { text: "Gyro3"; }
+                    Text { text: "Accel1"; }
+                    Text { text: "Accel2"; }
+                    Text { text: "Accel3"; }
+                }
             }
             Text {
                 horizontal-alignment: center;
