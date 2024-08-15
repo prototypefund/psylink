@@ -6,6 +6,8 @@ use std::sync::{Arc, Mutex};
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
+const EMG_CHANNELS: i32 = 8;
+const TOTAL_CHANNELS: usize = 14;
 
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
@@ -76,8 +78,8 @@ pub async fn start(app: App) {
             ui.set_text_graph_title(format!("Displaying PsyLink signals.").into());
             ui.set_page(1);
         });
-        let mut decoder = protocol::Decoder::new(8);
-        let mut plotter = Plotter::new(8);
+        let mut decoder = protocol::Decoder::new(EMG_CHANNELS);
+        let mut plotter = Plotter::new(TOTAL_CHANNELS);
 
         loop {
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
@@ -113,8 +115,7 @@ pub async fn start(app: App) {
                     }
                     if calib.timer > 0.0 {
                         new_calib_timer = Some(format!("{:.1}s", calib.timer));
-                    }
-                    else {
+                    } else {
                         new_calib_timer = Some(String::new());
                     }
                 }
@@ -201,7 +202,8 @@ impl Calibrator {
                 }
                 CalibratorState::GestureActionWait => CalibratorState::GestureAction,
                 CalibratorState::GestureAction => {
-                    self.remaining_key_presses[self.current_action] = self.remaining_key_presses[self.current_action].saturating_sub(1);
+                    self.remaining_key_presses[self.current_action] =
+                        self.remaining_key_presses[self.current_action].saturating_sub(1);
                     self.current_action = (self.current_action + 1) % self.action_count;
 
                     CalibratorState::NullActionWait
@@ -275,8 +277,10 @@ impl Plotter {
         let root = backend.into_drawing_area();
         root.fill(&WHITE).expect("error filling drawing area");
 
+        let x_axis = 0..MAX_POINTS;
+        let y_axis = -(TOTAL_CHANNELS as f64 + 1.0)..1.0;
         let mut chart = ChartBuilder::on(&root)
-            .build_cartesian_2d(0..MAX_POINTS, -8.0..1.0)
+            .build_cartesian_2d(x_axis, y_axis)
             .expect("error building coordinate system");
 
         chart.configure_mesh().draw().expect("error drawing");

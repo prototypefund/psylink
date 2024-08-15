@@ -14,7 +14,7 @@ pub struct Packet {
     pub min_sampling_delay: f64,
     pub max_sampling_delay: f64,
     pub sample_count: i32,
-    pub samples: Vec<Vec<u8>>,
+    pub samples: Vec<Vec<u8>>, // samples[channel][timestep]
     pub is_duplicate: bool,
     pub lost_packets: i32,
 }
@@ -35,6 +35,10 @@ impl Decoder {
         let delay_byte: u8 = *raw_packet_payload
             .get(1)
             .ok_or("Failed to decode packet, no sampling delay byte supplied")?;
+
+        let gyroscope_accelerometer: &[u8] = raw_packet_payload
+            .get(2..8)
+            .ok_or("Failed to decode packet, no gyroscope/accelerometer data supplied")?;
 
         let (min_sampling_delay, max_sampling_delay) = decompress_delay(delay_byte);
 
@@ -58,7 +62,7 @@ impl Decoder {
 
         self.last_tick = Some(tick);
 
-        let samples: Vec<Vec<u8>> = (0..self.channel_count)
+        let mut samples: Vec<Vec<u8>> = (0..self.channel_count)
             .map(|channel_index| {
                 raw_packet_payload
                     .iter()
@@ -69,8 +73,18 @@ impl Decoder {
             })
             .collect();
 
+        for value in gyroscope_accelerometer {
+            let mut repeated = Vec::<u8>::new();
+            for _ in 0..sample_count {
+                repeated.push(*value);
+            }
+            samples.push(repeated);
+        }
+
+        let extra_channels_count = gyroscope_accelerometer.len();
+
         return Ok(Packet {
-            channel_count: self.channel_count,
+            channel_count: self.channel_count + extra_channels_count as i32,
             tick,
             min_sampling_delay,
             max_sampling_delay,
