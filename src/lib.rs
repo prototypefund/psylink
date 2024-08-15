@@ -2,6 +2,7 @@
 #![doc(html_logo_url = "https://psylink.me/favicon.ico")]
 
 pub mod bluetooth;
+pub mod calibration;
 pub mod firmware;
 #[cfg(feature = "gui")]
 pub mod gui;
@@ -11,7 +12,7 @@ pub mod protocol;
 pub mod prelude {
     #[cfg(feature = "gui")]
     pub use crate::gui;
-    pub use crate::{bluetooth, firmware, protocol};
+    pub use crate::{bluetooth, calibration, firmware, protocol};
 
     #[derive(Clone, Copy)]
     pub struct App {
