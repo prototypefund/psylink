@@ -14,10 +14,17 @@ export global Logic {
     // 1. string: which key was pressed/released?
     // 2. bool: was it a key press? (as opposed to a key release)
     pure callback key-handler(string, bool);
+
+    // Parameters for start-calibration:
+    // 1. int: how many actions to calibrate for?
+    pure callback start-calibration-handler(int);
+
+    pure callback stop-calibration-handler();
 }
 
 export component LoadingPage {
     in property <string> statustext;
+    in property <bool> connected;
     HorizontalBox {
         alignment: center;
         VerticalBox {
@@ -25,6 +32,7 @@ export component LoadingPage {
             spacing: 20pt;
             Spinner {
                 indeterminate: true;
+                visible: !connected;
             }
             Text {
                 horizontal-alignment: center;
@@ -61,13 +69,50 @@ export component GraphPage {
     }
 }
 
+export component CalibrationPage {
+    in property <bool> calibrating;
+    in property <string> statustext;
+
+    HorizontalBox {
+        alignment: center;
+        VerticalBox {
+            alignment: center;
+            spacing: 20pt;
+            HorizontalBox {
+                Button {
+                    visible: !calibrating;
+                    text: "Start calibration for 1 action";
+                    clicked => {
+                        Logic.start-calibration-handler(1);
+                    }
+                }
+                Button {
+                    visible: calibrating;
+                    text: "Stop calibration";
+                    clicked => {
+                        Logic.stop-calibration-handler();
+                    }
+                }
+            }
+            Text {
+                horizontal-alignment: center;
+                text: statustext;
+            }
+        }
+    }
+}
+
 export component MainWindow inherits Window {
     title: "PsyLink";
     icon: @image-url("data/icon.svg");
     preferred-width: 400pt;
     preferred-height: 500pt;
     default-font-family: "Signika";
-    in property <string> statustext: "Scanning for nearby PsyLink devices...\n\nIs the PsyLink turned on?\nIs the battery charged?\nIs your bluetooth active?\n(try turning it off and on, if necessary)";
+    in property <string> text-connection-title: "Scanning for nearby PsyLink devices...\n\nIs the PsyLink turned on?\nIs the battery charged?\nIs your bluetooth active?\n(try turning it off and on, if necessary)";
+    in property <string> text-graph-title: "No";
+    in property <string> text-calibration-instruction: "No calibration in progress.";
+    in property <bool> calibrating: false;
+    in property <bool> connected: false;
     in property <string> pressedkeys: "";
     in property <int> page: 0;
     in property <image> graph0;
@@ -78,15 +123,23 @@ export component MainWindow inherits Window {
             Tab {
                 title: "Connection";
                 LoadingPage {
-                    statustext: statustext;
+                    statustext: text-connection-title;
+                    connected: connected;
                 }
             }
             Tab {
                 title: "Signals";
                 GraphPage {
-                    statustext: statustext;
+                    statustext: text-graph-title;
                     pressedkeys: pressedkeys;
                     graph0: graph0;
+                }
+            }
+            Tab {
+                title: "Calibration";
+                CalibrationPage {
+                    calibrating: calibrating;
+                    statustext: text-calibration-instruction;
                 }
             }
         }

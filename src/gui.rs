@@ -9,8 +9,8 @@ const MAX_POINTS: usize = 2048;
 
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
-    let ui_weak = ui.as_weak();
 
+    let calibrationstate = Arc::new(Mutex::new(false));
     let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
     let keystate_clone_writer = Arc::clone(&keystate);
     ui.global::<Logic>().on_key_handler(move |key: slint::SharedString, pressed: bool| {
@@ -22,14 +22,41 @@ pub async fn start(app: App) {
         }
     });
 
+    let ui_weak = ui.as_weak();
+    let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
+    ui.global::<Logic>().on_start_calibration_handler(move |_actions: i32| {
+        let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
+        *calibrationstate = true;
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            ui.set_calibrating(true);
+            ui.set_text_calibration_instruction(
+                format!("Calibration started.").into(),
+            );
+        });
+    });
+
+    let ui_weak = ui.as_weak();
+    let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
+    ui.global::<Logic>().on_stop_calibration_handler(move || {
+        let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
+        *calibrationstate = false;
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            ui.set_calibrating(false);
+            ui.set_text_calibration_instruction(
+                format!("No calibration in progress.").into(),
+            );
+        });
+    });
+
     let appclone = app.clone();
+    let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         let mut device = loop {
             tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
             if let Ok(device) = bluetooth::find_peripheral(appclone).await {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                    ui.set_statustext(
+                    ui.set_text_connection_title(
                         format!("Found PsyLink with MAC address {address}.\n\nConnecting...")
                             .into(),
                     );
@@ -40,7 +67,9 @@ pub async fn start(app: App) {
         device.find_characteristics().await;
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-            ui.set_statustext(format!("Displaying PsyLink signals.").into());
+            ui.set_connected(true);
+            ui.set_text_connection_title(format!("PsyLink connection established.\n\nPlease select another tab.").into());
+            ui.set_text_graph_title(format!("Displaying PsyLink signals.").into());
             ui.set_page(1);
         });
         let mut decoder = protocol::Decoder::new(8);
