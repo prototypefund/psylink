@@ -139,7 +139,7 @@ impl Plotter {
     }
 
     pub fn render(&self) -> slint::Image {
-        let mut pixel_buffer = SharedPixelBuffer::new(800, 600);
+        let mut pixel_buffer = SharedPixelBuffer::new(512, 386);
         let size = (pixel_buffer.width(), pixel_buffer.height());
         let backend = BitMapBackend::with_buffer(pixel_buffer.make_mut_bytes(), size);
         let root = backend.into_drawing_area();
