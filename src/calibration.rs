@@ -2,6 +2,8 @@
 
 use burn::data::dataloader::Dataset;
 
+const LOOKBEHIND: usize = 10;
+
 // The front end API
 #[derive(Clone, Default, Debug)]
 pub struct CalibController {
@@ -50,13 +52,21 @@ pub struct PsyLinkDataset {
 }
 
 impl Dataset<TrainingSample> for PsyLinkDataset {
+    // Constructs a TrainingSample with training features that include
+    // the signals at the time of recording, along with some amount of
+    // signals from the past.
     fn get(&self, index: usize) -> Option<TrainingSample> {
         let datapoint = self.datapoints.get(index)?;
-        let packet = self.all_packets.get(datapoint.packet_index)?;
-        // TODO: include not only the latest packet but the last N packets, maybe some
-        // packets from the future too.
+
+        if datapoint.packet_index <= LOOKBEHIND {
+            return None;
+        }
+        let start = datapoint.packet_index - LOOKBEHIND;
+        let end = datapoint.packet_index;
+        let packet = self.all_packets.get(start..end)?;
+
         Some(TrainingSample {
-            features: vec![packet.clone()],
+            features: (*packet).iter().cloned().collect(),
             label: datapoint.label,
         })
     }
