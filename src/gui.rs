@@ -95,13 +95,13 @@ pub async fn start(app: App) {
         loop {
             // Receive PsyLink signal packet
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
-            let text = bytearray
-                .iter()
-                .map(|n| n.to_string())
-                .collect::<Vec<String>>()
-                .join(", ");
             if appclone.verbose > 1 {
-                println!("Received BLE payload: {};", text);
+                let text = bytearray
+                    .iter()
+                    .map(|n| n.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ");
+                println!("Received BLE payload: {text};");
             }
 
             // Decode packet
