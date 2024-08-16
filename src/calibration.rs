@@ -1,7 +1,8 @@
 // This should be the *only* file that interfaces with the burn library.
 
+use burn::backend::{Autodiff, Wgpu};
 use burn::data::dataloader::batcher::Batcher;
-use burn::data::dataloader::Dataset;
+use burn::data::dataloader::{DataLoaderBuilder, Dataset};
 use burn::nn::{
     conv::{Conv2d, Conv2dConfig},
     loss::CrossEntropyLoss,
@@ -9,12 +10,15 @@ use burn::nn::{
     Dropout, DropoutConfig, Linear, LinearConfig, Relu,
 };
 use burn::optim::AdamConfig;
+use burn::record::CompactRecorder;
 use burn::prelude::*;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::{
     metric::{AccuracyMetric, LossMetric},
     ClassificationOutput, LearnerBuilder, TrainOutput, TrainStep, ValidStep,
 };
+// use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 
@@ -36,6 +40,90 @@ impl CalibController {
     // When you use this method, make sure to add the packet first.
     pub fn get_current_index(&self) -> usize {
         return self.dataset.all_packets.len();
+    }
+
+    fn create_artifact_dir(artifact_dir: &str) {
+        // Remove existing artifacts before to get an accurate learner summary
+        std::fs::remove_dir_all(artifact_dir).ok();
+        std::fs::create_dir_all(artifact_dir).ok();
+    }
+
+    fn train(&self) -> Result<(), Box<dyn std::error::Error>> {
+        type MyBackend = Wgpu;
+        //type MyBackend = Wgpu<f32, i32>;
+        type MyAutodiffBackend = Autodiff<MyBackend>;
+
+        // Create a default Wgpu device
+        let device = burn::backend::wgpu::WgpuDevice::default();
+
+        // All the training artifacts will be saved in this directory
+        let artifact_dir = "/tmp/guide";
+
+        // Train the model
+        self.train2::<MyAutodiffBackend>(
+            artifact_dir,
+            TrainingConfig::new(ModelConfig::new(), AdamConfig::new()),
+            device.clone(),
+        )?;
+        Ok(())
+    }
+
+    fn train2<B: AutodiffBackend>(
+        &self,
+        artifact_dir: &str,
+        config: TrainingConfig,
+        device: B::Device,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        Self::create_artifact_dir(artifact_dir);
+        config
+            .save(format!("{artifact_dir}/config.json"))
+            .expect("Config should be saved successfully");
+
+        B::seed(config.seed);
+
+        // Build dataset
+        let (dataset_train, dataset_valid) = self.dataset.split_train_validate();
+
+        // Build batchers
+        let batcher_train = TrainingBatcher::<B>::new(device.clone());
+        let batcher_valid = TrainingBatcher::<B::InnerBackend>::new(device.clone());
+
+        // Build data loaders
+        let dataloader_train = DataLoaderBuilder::new(batcher_train)
+            .batch_size(config.batch_size)
+            .shuffle(config.seed)
+            .num_workers(config.num_workers)
+            .build(dataset_train);
+
+        let dataloader_test = DataLoaderBuilder::new(batcher_valid)
+            .batch_size(config.batch_size)
+            .shuffle(config.seed)
+            .num_workers(config.num_workers)
+            .build(dataset_valid);
+
+        // Build learner
+        let learner = LearnerBuilder::new(artifact_dir)
+            .metric_train_numeric(AccuracyMetric::new())
+            .metric_valid_numeric(AccuracyMetric::new())
+            .metric_train_numeric(LossMetric::new())
+            .metric_valid_numeric(LossMetric::new())
+            .with_file_checkpointer(CompactRecorder::new())
+            .devices(vec![device.clone()])
+            .num_epochs(config.num_epochs)
+            .summary()
+            .build(
+                config.model.init::<B>(&device),
+                config.optimizer.init(),
+                config.learning_rate,
+            );
+
+        // Fit the learner
+        let model_trained = learner.fit(dataloader_train, dataloader_test);
+
+        model_trained
+            .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())
+            .expect("Trained model should be saved successfully");
+        Ok(())
     }
 }
 
@@ -190,6 +278,15 @@ impl Dataset<TrainingSample> for PsyLinkDataset {
     }
     fn len(&self) -> usize {
         return self.datapoints.len();
+    }
+}
+
+impl PsyLinkDataset {
+    fn split_train_validate(&self) -> (Self, Self) {
+        // let mut rng = thread_rng();
+        // items.shuffle(&mut rng);
+        // TODO: actually do the splitting
+        (self.clone(), self.clone())
     }
 }
 

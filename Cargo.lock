@@ -4568,6 +4568,7 @@ dependencies = [
  "burn",
  "clap",
  "plotters",
+ "rand",
  "slint",
  "slint-build",
  "tokio",
