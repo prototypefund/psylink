@@ -3,23 +3,24 @@
 use burn::data::dataloader::Dataset;
 
 // The front end API
-pub struct Calibrator {
+#[derive(Clone, Default, Debug)]
+pub struct CalibController {
     pub dataset: Samples,
 }
 
-impl Calibrator {
+impl CalibController {
     pub fn add_sample(&mut self, sample: Sample) {
         self.dataset.samples.push(sample);
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct Sample {
     pub features: Vec<f64>,
     pub label: u8,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct Samples {
     pub samples: Vec<Sample>,
 }
