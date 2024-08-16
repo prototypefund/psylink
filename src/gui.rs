@@ -42,10 +42,13 @@ pub async fn start(app: App) {
 
     let ui_weak = ui.as_weak();
     let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let calib_clone = Arc::clone(&calib);
     ui.global::<Logic>()
         .on_start_calibration_handler(move |actions: i32| {
             let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+            let mut calib = calib_clone.lock().unwrap();
             calibration_flow.start(actions as usize, 3);
+            calib.reset();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_calibrating(true);
                 ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());

@@ -37,6 +37,11 @@ impl CalibController {
         self.dataset.datapoints.push(datapoint);
     }
 
+    pub fn reset(&mut self) {
+        self.dataset.datapoints.clear();
+        self.dataset.all_packets.clear();
+    }
+
     // When you use this method, make sure to add the packet first.
     pub fn get_current_index(&self) -> usize {
         return self.dataset.all_packets.len();
