@@ -32,8 +32,7 @@ pub async fn start(app: App) {
                     let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                         ui.set_page(page);
                     });
-                }
-                else {
+                } else {
                     keystate.insert(key);
                 }
             } else {
@@ -266,7 +265,7 @@ impl CalibrationFlow {
         self.action_count = action_count;
         for _ in 0..action_count {
             self.remaining_key_presses.push(key_presses);
-        };
+        }
         self.currently_calibrating = true;
     }
 
@@ -328,7 +327,9 @@ impl CalibrationFlow {
             }
             CalibrationFlowState::NullActionWait => "Prepare to rest your arm.".into(),
             CalibrationFlowState::NullAction => "Rest your arm now.".into(),
-            CalibrationFlowState::GestureActionWait => format!("Prepare movement #{current_action}"),
+            CalibrationFlowState::GestureActionWait => {
+                format!("Prepare movement #{current_action}")
+            }
             CalibrationFlowState::GestureAction => format!("Do movement #{current_action} now."),
             CalibrationFlowState::Done => "Calibration complete.".into(),
         }
