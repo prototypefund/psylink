@@ -94,6 +94,7 @@ pub async fn start(app: App) {
         let mut plotter = Plotter::new(TOTAL_CHANNELS);
 
         loop {
+            // Receive PsyLink signal packet
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             let text = bytearray
                 .iter()
@@ -104,6 +105,7 @@ pub async fn start(app: App) {
                 println!("Received BLE payload: {};", text);
             }
 
+            // Decode packet
             let packet = decoder.decode_packet(bytearray);
             if packet.is_err() {
                 let message: String = packet.unwrap_err();
@@ -111,6 +113,8 @@ pub async fn start(app: App) {
                 continue;
             }
             let packet = packet.unwrap();
+
+            // Add packet to plotter
             plotter.insert(&packet.samples);
 
             let mut new_calib_message = None::<String>;
@@ -118,6 +122,7 @@ pub async fn start(app: App) {
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
+                // Update calibration flow state
                 let mut calib_flow = calibration_flow.lock().unwrap();
                 if calib_flow.currently_calibrating {
                     let state_changed = calib_flow.tick(0.2);
@@ -137,13 +142,18 @@ pub async fn start(app: App) {
                 let plotter_clone = plotter.clone();
                 let keystate_clone = Arc::clone(&keystate);
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                    // Update displayed text
                     if let Some(msg) = new_calib_message {
                         ui.set_text_calibration_instruction(msg.into());
                     }
                     if let Some(msg) = new_calib_timer {
                         ui.set_text_calibration_timer(msg.into());
                     }
+
+                    // Update plotter
                     ui.set_graph0(plotter_clone.render());
+
+                    // Update display of currently pressed keys
                     let keys = keystate_clone.lock().unwrap();
                     let mut keyvec: Vec<&String> = keys.iter().collect();
                     keyvec.sort();
