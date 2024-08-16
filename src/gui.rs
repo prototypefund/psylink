@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use calibration::Calibrator;
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
@@ -13,8 +12,7 @@ const TOTAL_CHANNELS: usize = 14;
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
 
-    let calibrator = Arc::new(Mutex::new(Calibrator::default()));
-    let calibrationstate = Arc::new(Mutex::new(false));
+    let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
 
     // At the moment, we store the set of keys that are currently being pressed
     // for the purpose of matching them with PsyLink signals in an upcoming feature.
@@ -43,14 +41,12 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
-    let calibrator_clone_writer = Arc::clone(&calibrator);
+    let calibration_flow_clone = Arc::clone(&calibration_flow);
     ui.global::<Logic>()
         .on_start_calibration_handler(move |actions: i32| {
-            let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
-            *calibrationstate = true;
-            let mut calibrator = calibrator_clone_writer.lock().unwrap();
-            *calibrator = Calibrator::new(actions as usize, 3);
+            let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+            *calibration_flow = CalibrationFlow::new(actions as usize, 3);
+            calibration_flow.currently_calibrating = true;
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_calibrating(true);
                 ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());
@@ -58,10 +54,10 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let calibrationstate_clone_writer = Arc::clone(&calibrationstate);
+    let calibration_flow_clone = Arc::clone(&calibration_flow);
     ui.global::<Logic>().on_stop_calibration_handler(move || {
-        let mut calibrationstate = calibrationstate_clone_writer.lock().unwrap();
-        *calibrationstate = false;
+        let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+        calibration_flow.currently_calibrating = false;
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(false);
             ui.set_text_calibration_instruction(format!("No calibration in progress.").into());
@@ -122,9 +118,8 @@ pub async fn start(app: App) {
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
-                let calibstate = calibrationstate.lock().unwrap();
-                if *calibstate {
-                    let mut calib = calibrator.lock().unwrap();
+                let mut calib = calibration_flow.lock().unwrap();
+                if calib.currently_calibrating {
                     let state_changed = calib.tick(0.2);
                     if state_changed {
                         new_calib_message = Some(calib.generate_message());
@@ -139,8 +134,8 @@ pub async fn start(app: App) {
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
-                let cloned_plotter = plotter.clone();
-                let keystate_clone_reader = Arc::clone(&keystate);
+                let plotter_clone = plotter.clone();
+                let keystate_clone = Arc::clone(&keystate);
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                     if let Some(msg) = new_calib_message {
                         ui.set_text_calibration_instruction(msg.into());
@@ -148,8 +143,8 @@ pub async fn start(app: App) {
                     if let Some(msg) = new_calib_timer {
                         ui.set_text_calibration_timer(msg.into());
                     }
-                    ui.set_graph0(cloned_plotter.render());
-                    let keys = keystate_clone_reader.lock().unwrap();
+                    ui.set_graph0(plotter_clone.render());
+                    let keys = keystate_clone.lock().unwrap();
                     let mut keyvec: Vec<&String> = keys.iter().collect();
                     keyvec.sort();
                     ui.set_pressedkeys(
@@ -231,5 +226,98 @@ impl Plotter {
         drop(root);
 
         slint::Image::from_rgb8(pixel_buffer)
+    }
+}
+
+#[derive(Clone, Default)]
+pub struct CalibrationFlow {
+    pub currently_calibrating: bool,
+    pub action_count: usize,
+    pub current_action: usize,
+    pub remaining_key_presses: Vec<u32>,
+    pub timer: f64,
+    pub state: CalibrationFlowState,
+}
+
+#[derive(Clone, Default, PartialEq)]
+pub enum CalibrationFlowState {
+    #[default]
+    Init,
+    Welcome,
+    NullActionWait,
+    NullAction,
+    GestureActionWait,
+    GestureAction,
+    Done,
+}
+
+impl CalibrationFlow {
+    pub fn new(action_count: usize, key_presses: u32) -> Self {
+        let mut result = Self::default();
+        result.action_count = action_count;
+        for _ in 0..action_count {
+            result.remaining_key_presses.push(key_presses);
+        }
+        result
+    }
+
+    /// returns true if a state change happened
+    pub fn tick(&mut self, time: f64) -> bool {
+        if self.timer > 0.0 {
+            self.timer -= time;
+        }
+        if self.timer <= 0.0 {
+            let new_state = match self.state {
+                CalibrationFlowState::Init => CalibrationFlowState::Welcome,
+                CalibrationFlowState::Welcome => CalibrationFlowState::NullActionWait,
+                CalibrationFlowState::NullActionWait => CalibrationFlowState::NullAction,
+                CalibrationFlowState::NullAction => {
+                    if self.remaining_key_presses.iter().all(|&x| x <= 0) {
+                        CalibrationFlowState::Done
+                    } else {
+                        CalibrationFlowState::GestureActionWait
+                    }
+                }
+                CalibrationFlowState::GestureActionWait => CalibrationFlowState::GestureAction,
+                CalibrationFlowState::GestureAction => {
+                    self.remaining_key_presses[self.current_action] =
+                        self.remaining_key_presses[self.current_action].saturating_sub(1);
+                    self.current_action = (self.current_action + 1) % self.action_count;
+
+                    CalibrationFlowState::NullActionWait
+                }
+                CalibrationFlowState::Done => CalibrationFlowState::Done,
+            };
+            let delay = match new_state {
+                CalibrationFlowState::Init | CalibrationFlowState::Done => 0.0,
+                CalibrationFlowState::Welcome => 4.0,
+                CalibrationFlowState::NullActionWait => 3.0,
+                CalibrationFlowState::NullAction => 8.0,
+                CalibrationFlowState::GestureActionWait => 4.0,
+                CalibrationFlowState::GestureAction => 8.0,
+            };
+
+            let state_change_happened = self.state != new_state;
+            self.state = new_state;
+            self.timer = delay;
+            return state_change_happened;
+        } else {
+            return false;
+        }
+    }
+
+    pub fn generate_message(&self) -> String {
+        let current_action = self.current_action.saturating_add(1);
+        match self.state {
+            CalibrationFlowState::Init => "Initializing...".into(),
+            CalibrationFlowState::Welcome => {
+                "Calibration starting. Please follow the instructions.".into()
+            }
+            CalibrationFlowState::NullActionWait => "Prepare to rest your arm.".into(),
+            CalibrationFlowState::NullAction => "Rest your arm now.".into(),
+            CalibrationFlowState::GestureActionWait => format!("Prepare movement #{current_action}"),
+            CalibrationFlowState::GestureAction => format!("Do movement #{current_action} now."),
+            CalibrationFlowState::Done => "Calibration complete.".into(),
+        }
     }
 }
