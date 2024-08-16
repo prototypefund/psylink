@@ -149,7 +149,7 @@ pub async fn start(app: App) {
                         if let Some(label) = label_maybe {
                             let datapoint = calibration::Datapoint {
                                 packet_index: calib.get_current_index(),
-                                label
+                                label,
                             };
                             if appclone.verbose > 0 {
                                 println!("Adding datapoint {datapoint:?}");
