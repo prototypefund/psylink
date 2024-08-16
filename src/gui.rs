@@ -136,12 +136,17 @@ pub async fn start(app: App) {
                     }
 
                     // Add samples to dataset
-                    if let Some(label) = calib_flow.get_label() {
-                        for sample in packet.samples {
-                            if appclone.verbose > 1 {
-                                println!("Adding packet {sample:?}");
-                            }
-                            calib.add_packet(sample);
+                    let label_maybe = calib_flow.get_label();
+                    for sample in packet.samples {
+                        // Always add the packet, so we have a history of packets
+                        // from which we can construct the training samples
+                        if appclone.verbose > 1 {
+                            println!("Adding packet {sample:?}");
+                        }
+                        calib.add_packet(sample);
+
+                        // Add datapoints only if UI asks the user to perform some action
+                        if let Some(label) = label_maybe {
                             let datapoint = calibration::Datapoint {
                                 packet_index: calib.get_current_index(),
                                 label
