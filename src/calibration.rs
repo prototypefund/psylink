@@ -17,9 +17,10 @@ use burn::train::{
     metric::{AccuracyMetric, LossMetric},
     ClassificationOutput, LearnerBuilder, TrainOutput, TrainStep, ValidStep,
 };
-// use rand::seq::SliceRandom;
-// use rand::thread_rng;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
+const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 
 // The front end API
@@ -290,10 +291,28 @@ impl Dataset<TrainingSample> for PsyLinkDataset {
 
 impl PsyLinkDataset {
     fn split_train_validate(&self) -> (Self, Self) {
-        // let mut rng = thread_rng();
-        // items.shuffle(&mut rng);
+        let mut datapoints = self.datapoints.clone();
+        let mut rng = thread_rng();
+        datapoints.shuffle(&mut rng);
+
+        let validation_split_index = (datapoints.len() * VALIDATION_SET_PERCENTAGE) / 100;
+        let validation_datapoints = if validation_split_index <= datapoints.len() {
+            datapoints.split_off(validation_split_index)
+        } else {
+            vec![]
+        };
+
+        let train_dataset = PsyLinkDataset {
+            datapoints,
+            all_packets: self.all_packets.clone(),
+        };
+        let validation_dataset = PsyLinkDataset {
+            datapoints: validation_datapoints,
+            all_packets: self.all_packets.clone(),
+        };
+
         // TODO: actually do the splitting
-        (self.clone(), self.clone())
+        (train_dataset, validation_dataset)
     }
 }
 
