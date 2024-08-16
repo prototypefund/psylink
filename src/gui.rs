@@ -140,7 +140,7 @@ pub async fn start(app: App) {
                     for sample in packet.samples {
                         // Always add the packet, so we have a history of packets
                         // from which we can construct the training samples
-                        if appclone.verbose > 1 {
+                        if appclone.verbose > 0 {
                             println!("Adding packet {sample:?}");
                         }
                         calib.add_packet(sample);
@@ -151,7 +151,7 @@ pub async fn start(app: App) {
                                 packet_index: calib.get_current_index(),
                                 label
                             };
-                            if appclone.verbose > 1 {
+                            if appclone.verbose > 0 {
                                 println!("Adding datapoint {datapoint:?}");
                             }
                             calib.add_datapoint(datapoint);
