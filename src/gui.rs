@@ -121,9 +121,10 @@ pub async fn start(app: App) {
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
-                // Update calibration flow state
                 let mut calib_flow = calibration_flow.lock().unwrap();
+                let mut calib = calib.lock().unwrap();
                 if calib_flow.currently_calibrating {
+                    // Update calibration flow state
                     let state_changed = calib_flow.tick(0.2);
                     if state_changed {
                         new_calib_message = Some(calib_flow.generate_message());
@@ -132,6 +133,24 @@ pub async fn start(app: App) {
                         new_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
                     } else {
                         new_calib_timer = Some(String::new());
+                    }
+
+                    // Add samples to dataset
+                    if let Some(label) = calib_flow.get_label() {
+                        for sample in packet.samples {
+                            if appclone.verbose > 1 {
+                                println!("Adding packet {sample:?}");
+                            }
+                            calib.add_packet(sample);
+                            let datapoint = calibration::Datapoint {
+                                packet_index: calib.get_current_index(),
+                                label
+                            };
+                            if appclone.verbose > 1 {
+                                println!("Adding datapoint {datapoint:?}");
+                            }
+                            calib.add_datapoint(datapoint);
+                        }
                     }
                 }
             }
@@ -271,6 +290,18 @@ impl CalibrationFlow {
 
     pub fn stop(&mut self) {
         *self = Self::default();
+    }
+
+    pub fn get_label(&self) -> Option<u8> {
+        if !self.currently_calibrating {
+            return None;
+        }
+        match self.state {
+            // NOTE: THIS MAY PANIC:
+            CalibrationFlowState::GestureAction => Some(self.current_action as u8 + 1),
+            CalibrationFlowState::NullAction => Some(0),
+            _ => None,
+        }
     }
 
     /// returns true if a state change happened
