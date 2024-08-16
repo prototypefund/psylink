@@ -1,10 +1,20 @@
+# Getting started
+
+To build this software, [first install Rust and Cargo on your system.](https://doc.rust-lang.org/stable/cargo/getting-started/installation.html)
+
+Then [download the source code](https://codeberg.org/psylink/psylink/archive/master.zip) and unpack it. All the following commands should be run in the root directory of the source code.
+
 # Linux
 
-    cargo build
+Run this command:
+
+    cargo run --release
 
 # For Windows, cross-compiled on Linux
 
     cargo build --release --target x86_64-pc-windows-gnu
+
+The executable file will be placed in the "target" subdirectory.
 
 # For Android, cross-compiled on Linux
 
