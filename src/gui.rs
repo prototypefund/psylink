@@ -12,6 +12,7 @@ const TOTAL_CHANNELS: usize = 14;
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
 
+    let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
 
     // At the moment, we store the set of keys that are currently being pressed
@@ -117,14 +118,14 @@ pub async fn start(app: App) {
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
-                let mut calib = calibration_flow.lock().unwrap();
-                if calib.currently_calibrating {
-                    let state_changed = calib.tick(0.2);
+                let mut calib_flow = calibration_flow.lock().unwrap();
+                if calib_flow.currently_calibrating {
+                    let state_changed = calib_flow.tick(0.2);
                     if state_changed {
-                        new_calib_message = Some(calib.generate_message());
+                        new_calib_message = Some(calib_flow.generate_message());
                     }
-                    if calib.timer > 0.0 {
-                        new_calib_timer = Some(format!("{:.1}s", calib.timer));
+                    if calib_flow.timer > 0.0 {
+                        new_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
                     } else {
                         new_calib_timer = Some(String::new());
                     }
