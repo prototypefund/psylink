@@ -11,7 +11,7 @@ version = "0.1.0"
 btleplug = "0.11.5"
 clap = { version = "4.5.4", features = ["derive"] }
 tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thread"] }
-slint = { version = "1.7.1", optional = true, default-features = false, features = ["accessibility", "backend-winit", "compat-1-2", "renderer-software", "std"] }
+slint = { version = "1.7.2", optional = true, default-features = false, features = ["accessibility", "backend-winit", "compat-1-2", "renderer-software", "std"] }
 plotters = { version = "0.3.6", default-features = false, features = ["all_series", "all_elements", "bitmap_backend", "bitmap_encoder", "bitmap_gif", "chrono", "colormaps", "deprecated_items", "full_palette", "image", "svg_backend"] }
 burn = { version = "0.13.2", features = ["wgpu", "train"] }
 #plotters = { version = "0.3.6", default-features = false, features = ["bitmap_backend", "line_series", "fontconfig-dlopen", "ttf"] }
@@ -19,17 +19,17 @@ rand = "0.8"
 uuid = "1.6"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-slint = { version = "1.7.1", optional = true, default-features = false, features = ["accessibility", "backend-qt", "backend-winit", "compat-1-2", "renderer-software", "std"] }
+slint = { version = "1.7.2", optional = true, default-features = false, features = ["accessibility", "backend-qt", "backend-winit", "compat-1-2", "renderer-software", "std"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
-slint = { version = "1.7.1", optional = true, default-features = false, features = ["accessibility", "backend-android-activity-06", "backend-winit", "compat-1-2", "renderer-software", "std"] }
+slint = { version = "1.7.2", optional = true, default-features = false, features = ["accessibility", "backend-android-activity-06", "backend-winit", "compat-1-2", "renderer-software", "std"] }
 
 [dev-dependencies]
 tokio = { version = "1.37.0", features = ["sync", "rt", "macros", "rt-multi-thread"] }
 approx_eq = "0.1"
 
 [build-dependencies]
-slint-build = "1.7.1"
+slint-build = "1.7.2"
 
 [features]
 default = ["gui"]
