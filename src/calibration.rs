@@ -2,7 +2,7 @@
 
 use burn::data::dataloader::Dataset;
 
-const LOOKBEHIND: usize = 10;
+const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 
 // The front end API
 #[derive(Clone, Default, Debug)]
@@ -58,12 +58,12 @@ impl Dataset<TrainingSample> for PsyLinkDataset {
     fn get(&self, index: usize) -> Option<TrainingSample> {
         let datapoint = self.datapoints.get(index)?;
 
-        if datapoint.packet_index <= LOOKBEHIND {
+        if datapoint.packet_index < SAMPLE_TIMESPAN {
             return None;
         }
-        let start = datapoint.packet_index - LOOKBEHIND;
+        let start = datapoint.packet_index - (SAMPLE_TIMESPAN - 1);
         let end = datapoint.packet_index;
-        let packet = self.all_packets.get(start..end)?;
+        let packet = self.all_packets.get(start..=end)?;
 
         Some(TrainingSample {
             features: (*packet).iter().cloned().collect(),
