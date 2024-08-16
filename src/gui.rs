@@ -361,12 +361,12 @@ impl CalibrationFlow {
             CalibrationFlowState::Welcome => {
                 "Calibration starting. Please follow the instructions.".into()
             }
-            CalibrationFlowState::NullActionWait => "Prepare to rest your arm.".into(),
-            CalibrationFlowState::NullAction => "Rest your arm now.".into(),
+            CalibrationFlowState::NullActionWait => "⚠️ Prepare to rest your arm.".into(),
+            CalibrationFlowState::NullAction => "⛔ Rest your arm now.".into(),
             CalibrationFlowState::GestureActionWait => {
-                format!("Prepare movement #{current_action}")
+                format!("⚠️ Prepare movement #{current_action}")
             }
-            CalibrationFlowState::GestureAction => format!("Do movement #{current_action} now."),
+            CalibrationFlowState::GestureAction => format!("✋ Do movement #{current_action} now."),
             CalibrationFlowState::Done => "Calibration complete.".into(),
         }
     }
