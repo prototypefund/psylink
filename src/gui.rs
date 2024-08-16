@@ -45,8 +45,7 @@ pub async fn start(app: App) {
     ui.global::<Logic>()
         .on_start_calibration_handler(move |actions: i32| {
             let mut calibration_flow = calibration_flow_clone.lock().unwrap();
-            *calibration_flow = CalibrationFlow::new(actions as usize, 3);
-            calibration_flow.currently_calibrating = true;
+            calibration_flow.start(actions as usize, 3);
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_calibrating(true);
                 ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());
@@ -57,7 +56,7 @@ pub async fn start(app: App) {
     let calibration_flow_clone = Arc::clone(&calibration_flow);
     ui.global::<Logic>().on_stop_calibration_handler(move || {
         let mut calibration_flow = calibration_flow_clone.lock().unwrap();
-        calibration_flow.currently_calibrating = false;
+        calibration_flow.stop();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(false);
             ui.set_text_calibration_instruction(format!("No calibration in progress.").into());
@@ -252,13 +251,16 @@ pub enum CalibrationFlowState {
 }
 
 impl CalibrationFlow {
-    pub fn new(action_count: usize, key_presses: u32) -> Self {
-        let mut result = Self::default();
-        result.action_count = action_count;
+    pub fn start(&mut self, action_count: usize, key_presses: u32) {
+        self.action_count = action_count;
         for _ in 0..action_count {
-            result.remaining_key_presses.push(key_presses);
-        }
-        result
+            self.remaining_key_presses.push(key_presses);
+        };
+        self.currently_calibrating = true;
+    }
+
+    pub fn stop(&mut self) {
+        *self = Self::default();
     }
 
     /// returns true if a state change happened
