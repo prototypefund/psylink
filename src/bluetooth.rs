@@ -130,9 +130,7 @@ pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
         .unwrap();
     loop {
         let data = psylink.peripheral.read(sensor_characteristic).await?;
-        if app.verbose > 1 {
-            dbg!(data);
-        }
+        dbg!(data);
     }
 }
 
