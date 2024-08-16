@@ -63,6 +63,13 @@ pub async fn start(app: App) {
         });
     });
 
+    let calib_clone = Arc::clone(&calib);
+    ui.global::<Logic>().on_train_handler(move || {
+        let calib = calib_clone.lock().unwrap();
+        let result = calib.train();
+        dbg!(&result);
+    });
+
     let appclone = app.clone();
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {

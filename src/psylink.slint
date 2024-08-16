@@ -20,6 +20,7 @@ export global Logic {
     pure callback start-calibration-handler(int);
 
     pure callback stop-calibration-handler();
+    pure callback train-handler();
 }
 
 export component LoadingPage {
@@ -70,6 +71,12 @@ export component GraphPage {
                     text: "Stop calibration";
                     clicked => {
                         Logic.stop-calibration-handler();
+                    }
+                }
+                Button {
+                    text: "Train";
+                    clicked => {
+                        Logic.train-handler();
                     }
                 }
             }

@@ -18,7 +18,7 @@ use burn::train::{
     ClassificationOutput, LearnerBuilder, TrainOutput, TrainStep, ValidStep,
 };
 // use rand::seq::SliceRandom;
-use rand::thread_rng;
+// use rand::thread_rng;
 
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 
@@ -48,7 +48,7 @@ impl CalibController {
         std::fs::create_dir_all(artifact_dir).ok();
     }
 
-    fn train(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn train(&self) -> Result<(), Box<dyn std::error::Error>> {
         type MyBackend = Wgpu;
         //type MyBackend = Wgpu<f32, i32>;
         type MyAutodiffBackend = Autodiff<MyBackend>;
@@ -80,6 +80,8 @@ impl CalibController {
             .expect("Config should be saved successfully");
 
         B::seed(config.seed);
+
+        println!("Dataset length: {}", self.dataset.len());
 
         // Build dataset
         let (dataset_train, dataset_valid) = self.dataset.split_train_validate();
