@@ -2,7 +2,13 @@
 
 To build this software, [first install Rust and Cargo on your system.](https://doc.rust-lang.org/stable/cargo/getting-started/installation.html)
 
-Then [download the source code](https://codeberg.org/psylink/psylink/archive/master.zip) and unpack it. All the following commands should be run in the root directory of the source code.
+Then [download the source code](https://codeberg.org/psylink/psylink/archive/master.zip) and unpack it. Alternatively, install `git` and download the source code with this git command:
+
+```
+git clone https://codeberg.org/psylink/psylink.git
+```
+
+All the following commands should be run in the root directory of the source code.
 
 # Linux
 
