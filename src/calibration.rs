@@ -321,14 +321,14 @@ impl PsyLinkDataset {
         for datapoint in &self.datapoints {
             string += format!("({},{}),", datapoint.packet_index, datapoint.label).as_str();
         }
-        string += "],\n[";
+        string += "],\n[\n";
         for packet in &self.all_packets {
-            string += "(";
+            string += "[";
             for byte in packet {
                 string += byte.to_string().as_str();
                 string += ",";
             }
-            string += "),\n";
+            string += "],\n";
         }
         string += "])\n";
         string
