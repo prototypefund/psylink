@@ -3,6 +3,7 @@ use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
 use std::sync::{Arc, Mutex};
+use std::io::Write;
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
@@ -69,8 +70,16 @@ pub async fn start(app: App) {
     let calib_clone = Arc::clone(&calib);
     ui.global::<Logic>().on_train_handler(move || {
         let calib = calib_clone.lock().unwrap();
+        dbg!(&calib.dataset);
         let result = calib.train();
         dbg!(&result);
+    });
+
+    let calib_clone = Arc::clone(&calib);
+    ui.global::<Logic>().on_debug_handler(move || {
+        let calib = calib_clone.lock().unwrap();
+        let mut output = std::fs::File::create("/tmp/out.txt").unwrap();
+        let _ = write!(output, "{}", calib.dataset.to_string());
     });
 
     let appclone = app.clone();

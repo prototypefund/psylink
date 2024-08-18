@@ -314,6 +314,25 @@ impl PsyLinkDataset {
         // TODO: actually do the splitting
         (train_dataset, validation_dataset)
     }
+
+    pub fn to_string(&self) -> String {
+        let mut string = String::new();
+        string += "([\n";
+        for datapoint in &self.datapoints {
+            string += format!("({},{}),", datapoint.packet_index, datapoint.label).as_str();
+        }
+        string += "],\n[";
+        for packet in &self.all_packets {
+            string += "(";
+            for byte in packet {
+                string += byte.to_string().as_str();
+                string += ",";
+            }
+            string += "),\n";
+        }
+        string += "])\n";
+        string
+    }
 }
 
 #[derive(Clone, Debug)]
