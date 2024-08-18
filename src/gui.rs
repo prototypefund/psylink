@@ -47,7 +47,7 @@ pub async fn start(app: App) {
         .on_start_calibration_handler(move |actions: i32| {
             let mut calibration_flow = calibration_flow_clone.lock().unwrap();
             let mut calib = calib_clone.lock().unwrap();
-            calibration_flow.start(actions as usize, 3);
+            calibration_flow.start(actions as usize, 2);
             calib.reset();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_calibrating(true);

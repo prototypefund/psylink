@@ -200,7 +200,7 @@ impl<B: Backend> Model<B> {
 
 #[derive(Config, Debug)]
 pub struct ModelConfig {
-    #[config(default = "5")]
+    #[config(default = "2")]
     num_classes: usize,
     #[config(default = "32")]
     hidden_size: usize,
@@ -227,9 +227,9 @@ impl ModelConfig {
 pub struct TrainingConfig {
     pub model: ModelConfig,
     pub optimizer: AdamConfig,
-    #[config(default = 6)]
+    #[config(default = 10)]
     pub num_epochs: usize,
-    #[config(default = 128)]
+    #[config(default = 32)]
     pub batch_size: usize,
     #[config(default = 8)]
     pub num_workers: usize,
