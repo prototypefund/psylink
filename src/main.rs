@@ -26,6 +26,9 @@ enum Commands {
     /// Write the raw data from a PsyLink to the console
     Print {},
 
+    /// Perform a calibration on the test dataset
+    Train {},
+
     #[cfg(feature = "gui")]
     /// Open the graphical user interface (default action)
     Gui {},
@@ -49,6 +52,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         Some(Commands::Print {}) => {
             bluetooth::stream(conf).await?;
+        }
+        Some(Commands::Train {}) => {
+            calibration::train()?;
         }
         #[cfg(feature = "gui")]
         Some(Commands::Gui {}) | None => {

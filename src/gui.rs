@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::calibration::{PsyLinkDataset, TEST_DATASET};
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
@@ -85,8 +86,7 @@ pub async fn start(app: App) {
     let calib_clone = Arc::clone(&calib);
     ui.global::<Logic>().on_load_handler(move || {
         let mut calib = calib_clone.lock().unwrap();
-        let test_dataset = include!("data/test_dataset.rs");
-        calib.dataset = calibration::PsyLinkDataset::from_arrays(&test_dataset.0, &test_dataset.1);
+        calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });
 
     let appclone = app.clone();

@@ -22,6 +22,7 @@ use rand::thread_rng;
 
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
+const TEST_DATASET: ([(usize, u8); 2800], [[u8; 25]; 4690]) = include!("data/test_dataset.rs");
 
 // The front end API
 #[derive(Clone, Default, Debug)]
@@ -401,4 +402,12 @@ impl<B: Backend> Batcher<TrainingSample, TrainingBatch<B>> for TrainingBatcher<B
         let batch = TrainingBatch { features, targets };
         return batch;
     }
+}
+
+pub fn train() -> Result<(), Box<dyn std::error::Error>> {
+    let mut calib = CalibController::default();
+    calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
+    calib.train()?;
+
+    Ok(())
 }
