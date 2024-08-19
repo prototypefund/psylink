@@ -163,13 +163,13 @@ impl<B: Backend> ValidStep<TrainingBatch<B>, ClassificationOutput<B>> for Model<
 
 impl<B: Backend> Model<B> {
     /// # Shapes
-    ///   - Images [batch_size, height, width]
+    ///   - Features [batch_size, height, width]
     ///   - Output [batch_size, num_classes]
-    pub fn forward(&self, images: Tensor<B, 3>) -> Tensor<B, 2> {
-        let [batch_size, height, width] = images.dims();
+    pub fn forward(&self, features: Tensor<B, 3>) -> Tensor<B, 2> {
+        let [batch_size, height, width] = features.dims();
 
         // Create a channel at the second dimension.
-        let x = images.reshape([batch_size, 1, height, width]);
+        let x = features.reshape([batch_size, 1, height, width]);
 
         let x = self.conv1.forward(x); // [batch_size, 8, _, _]
         let x = self.dropout.forward(x);
@@ -188,10 +188,10 @@ impl<B: Backend> Model<B> {
 
     pub fn forward_classification(
         &self,
-        images: Tensor<B, 3>,
+        features: Tensor<B, 3>,
         targets: Tensor<B, 1, Int>,
     ) -> ClassificationOutput<B> {
-        let output = self.forward(images);
+        let output = self.forward(features);
         let loss =
             CrossEntropyLoss::new(None, &output.device()).forward(output.clone(), targets.clone());
 
