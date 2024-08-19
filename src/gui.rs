@@ -79,7 +79,7 @@ pub async fn start(app: App) {
     let calib_clone = Arc::clone(&calib);
     ui.global::<Logic>().on_save_handler(move || {
         let calib = calib_clone.lock().unwrap();
-        let mut output = std::fs::File::create("/tmp/out.txt").unwrap();
+        let mut output = std::fs::File::create("/tmp/saved_psylink_dataset.rs").unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
     });
 
