@@ -297,18 +297,18 @@ impl PsyLinkDataset {
         datapoints.shuffle(&mut rng);
 
         let validation_split_index = (datapoints.len() * VALIDATION_SET_PERCENTAGE) / 100;
-        let validation_datapoints = if validation_split_index <= datapoints.len() {
+        let training_datapoints = if validation_split_index <= datapoints.len() {
             datapoints.split_off(validation_split_index)
         } else {
             vec![]
         };
 
         let train_dataset = PsyLinkDataset {
-            datapoints,
+            datapoints: training_datapoints,
             all_packets: self.all_packets.clone(),
         };
         let validation_dataset = PsyLinkDataset {
-            datapoints: validation_datapoints,
+            datapoints,
             all_packets: self.all_packets.clone(),
         };
 
