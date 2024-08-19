@@ -81,14 +81,16 @@ export component GraphPage {
                         Logic.train-handler();
                     }
                 }
+            }
+            HorizontalBox {
                 Button {
-                    text: "Save";
+                    text: "Save calibration data";
                     clicked => {
                         Logic.save-handler();
                     }
                 }
                 Button {
-                    text: "Load";
+                    text: "Load test dataset";
                     clicked => {
                         Logic.load-handler();
                     }
