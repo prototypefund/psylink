@@ -22,7 +22,7 @@ use rand::thread_rng;
 
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
-pub const TEST_DATASET: ([(usize, u8); 2800], [[u8; 25]; 4690]) = include!("data/test_dataset.rs");
+pub const TEST_DATASET: ([(usize, u8); 5000], [[u8; 14]; 8800]) = include!("data/test_dataset.rs");
 
 // The front end API
 #[derive(Clone, Default, Debug)]
@@ -335,7 +335,7 @@ impl PsyLinkDataset {
         string
     }
 
-    pub fn from_arrays(datapoints: &[(usize, u8)], all_packets: &[[u8; 25]]) -> Self {
+    pub fn from_arrays(datapoints: &[(usize, u8)], all_packets: &[[u8; 14]]) -> Self {
         let datapoints: Vec<Datapoint> = datapoints
             .iter()
             .map(|d| Datapoint {

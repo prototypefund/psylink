@@ -163,7 +163,7 @@ pub async fn start(app: App) {
 
                     // Add samples to dataset
                     let label_maybe = calib_flow.get_label();
-                    for sample in packet.samples {
+                    for sample in transpose_vec(packet.samples) {
                         // Always add the packet, so we have a history of packets
                         // from which we can construct the training samples
                         if appclone.verbose > 0 {

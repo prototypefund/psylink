@@ -19,6 +19,25 @@ pub mod prelude {
         pub verbose: u8,
         pub scantime: f32,
     }
+
+    pub fn transpose_vec<T: Clone>(matrix: Vec<Vec<T>>) -> Vec<Vec<T>> {
+        if matrix.is_empty() || matrix[0].is_empty() {
+            return vec![];
+        }
+
+        let col_count = matrix[0].len();
+
+        // Create a new matrix with dimensions swapped
+        let mut transposed = vec![vec![]; col_count];
+
+        for row in matrix {
+            for (j, item) in row.into_iter().enumerate() {
+                transposed[j].push(item);
+            }
+        }
+
+        transposed
+    }
 }
 
 #[no_mangle]
