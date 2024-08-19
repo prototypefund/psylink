@@ -1,5 +1,5 @@
-use crate::prelude::*;
 use crate::calibration::{PsyLinkDataset, TEST_DATASET};
+use crate::prelude::*;
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
