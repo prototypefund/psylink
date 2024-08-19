@@ -76,10 +76,17 @@ pub async fn start(app: App) {
     });
 
     let calib_clone = Arc::clone(&calib);
-    ui.global::<Logic>().on_debug_handler(move || {
+    ui.global::<Logic>().on_save_handler(move || {
         let calib = calib_clone.lock().unwrap();
         let mut output = std::fs::File::create("/tmp/out.txt").unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
+    });
+
+    let calib_clone = Arc::clone(&calib);
+    ui.global::<Logic>().on_load_handler(move || {
+        let mut calib = calib_clone.lock().unwrap();
+        let test_dataset = include!("data/test_dataset.rs");
+        calib.dataset = calibration::PsyLinkDataset::from_arrays(&test_dataset.0, &test_dataset.1);
     });
 
     let appclone = app.clone();

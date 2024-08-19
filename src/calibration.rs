@@ -10,8 +10,8 @@ use burn::nn::{
     Dropout, DropoutConfig, Linear, LinearConfig, Relu,
 };
 use burn::optim::AdamConfig;
-use burn::record::CompactRecorder;
 use burn::prelude::*;
+use burn::record::CompactRecorder;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::{
     metric::{AccuracyMetric, LossMetric},
@@ -332,6 +332,23 @@ impl PsyLinkDataset {
         }
         string += "])\n";
         string
+    }
+
+    pub fn from_arrays(datapoints: &[(usize, u8)], all_packets: &[[u8; 25]]) -> Self {
+        let datapoints: Vec<Datapoint> = datapoints
+            .iter()
+            .map(|d| Datapoint {
+                packet_index: d.0,
+                label: d.1,
+            })
+            .collect();
+
+        let all_packets: Vec<Vec<u8>> = all_packets
+            .iter()
+            .map(|packet| packet.iter().map(|&byte| byte).collect())
+            .collect();
+
+        Self { datapoints, all_packets }
     }
 }
 

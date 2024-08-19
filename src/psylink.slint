@@ -21,7 +21,8 @@ export global Logic {
 
     pure callback stop-calibration-handler();
     pure callback train-handler();
-    pure callback debug-handler();
+    pure callback load-handler();
+    pure callback save-handler();
 }
 
 export component LoadingPage {
@@ -81,9 +82,15 @@ export component GraphPage {
                     }
                 }
                 Button {
-                    text: "Debug";
+                    text: "Save";
                     clicked => {
-                        Logic.debug-handler();
+                        Logic.save-handler();
+                    }
+                }
+                Button {
+                    text: "Load";
+                    clicked => {
+                        Logic.load-handler();
                     }
                 }
             }
