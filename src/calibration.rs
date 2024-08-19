@@ -348,7 +348,10 @@ impl PsyLinkDataset {
             .map(|packet| packet.iter().map(|&byte| byte).collect())
             .collect();
 
-        Self { datapoints, all_packets }
+        Self {
+            datapoints,
+            all_packets,
+        }
     }
 }
 

@@ -2,8 +2,8 @@ use crate::prelude::*;
 use plotters::prelude::*;
 use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
-use std::sync::{Arc, Mutex};
 use std::io::Write;
+use std::sync::{Arc, Mutex};
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
