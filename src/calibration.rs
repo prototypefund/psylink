@@ -213,8 +213,8 @@ impl ModelConfig {
     /// Returns the initialized model.
     pub fn init<B: Backend>(&self, device: &B::Device) -> Model<B> {
         Model {
-            conv1: Conv2dConfig::new([1, 32], [3, 3]).init(device),
-            conv2: Conv2dConfig::new([32, 16], [3, 3]).init(device),
+            conv1: Conv2dConfig::new([1, 16], [5, 5]).init(device),
+            conv2: Conv2dConfig::new([16, 16], [5, 5]).init(device),
             pool: AdaptiveAvgPool2dConfig::new([8, 8]).init(),
             activation: Relu::new(),
             linear1: LinearConfig::new(16 * 8 * 8, self.hidden_size).init(device),
