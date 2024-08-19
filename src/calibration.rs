@@ -11,7 +11,11 @@ use burn::nn::{
 };
 use burn::optim::AdamConfig;
 use burn::prelude::*;
+use burn::record::BinFileRecorder;
+use burn::record::BinBytesRecorder;
+use burn::record::Recorder;
 use burn::record::CompactRecorder;
+use burn::record::FullPrecisionSettings;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::{
     metric::{AccuracyMetric, LossMetric},
@@ -23,6 +27,7 @@ use rand::thread_rng;
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 pub const TEST_DATASET: ([(usize, u8); 5000], [[u8; 14]; 8800]) = include!("data/test_dataset.rs");
+pub const TEST_MODEL: &[u8] = include_bytes!("data/test_model.bin");
 
 // The front end API
 #[derive(Clone, Default, Debug)]
@@ -130,8 +135,14 @@ impl CalibController {
         let model_trained = learner.fit(dataloader_train, dataloader_test);
 
         model_trained
+            .clone()
             .save_file(format!("{artifact_dir}/model"), &CompactRecorder::new())
             .expect("Trained model should be saved successfully");
+
+        let recorder = BinFileRecorder::<FullPrecisionSettings>::new();
+        model_trained
+            .save_file(format!("{artifact_dir}/model_bin"), &recorder)
+            .expect("Should be able to save the model");
         Ok(())
     }
 }
@@ -408,6 +419,27 @@ pub fn train() -> Result<(), Box<dyn std::error::Error>> {
     let mut calib = CalibController::default();
     calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     calib.train()?;
+
+    Ok(())
+}
+
+pub fn infer() -> Result<(), Box<dyn std::error::Error>> {
+    type MyBackend = Wgpu;
+    type MyAutodiffBackend = Autodiff<MyBackend>;
+    type B = MyAutodiffBackend;
+
+    // let device = Default::default();
+    let device = burn::backend::wgpu::WgpuDevice::default();
+
+    let config = TrainingConfig::load_binary(include_bytes!("data/test_model_config.json"))
+        .expect("Config should exist for the model");
+    let record = BinBytesRecorder::<FullPrecisionSettings>::default()
+        .load(TEST_MODEL.to_vec(), &device)
+        .expect("Should be able to load model the model weights from bytes");
+
+    let model = config.model.init::<B>(&device).load_record(record);
+
+    // TODO: do actual inference
 
     Ok(())
 }

@@ -29,6 +29,9 @@ enum Commands {
     /// Perform a calibration on the test dataset
     Train {},
 
+    /// Perform a calibration inference based on the pre-trained test model
+    Infer {},
+
     #[cfg(feature = "gui")]
     /// Open the graphical user interface (default action)
     Gui {},
@@ -55,6 +58,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         Some(Commands::Train {}) => {
             calibration::train()?;
+        }
+        Some(Commands::Infer {}) => {
+            calibration::infer()?;
         }
         #[cfg(feature = "gui")]
         Some(Commands::Gui {}) | None => {
