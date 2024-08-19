@@ -64,7 +64,7 @@ impl CalibController {
         let device = burn::backend::wgpu::WgpuDevice::default();
 
         // All the training artifacts will be saved in this directory
-        let artifact_dir = "/tmp/guide";
+        let artifact_dir = "/tmp/psylink";
 
         // Train the model
         self.train2::<MyAutodiffBackend>(
