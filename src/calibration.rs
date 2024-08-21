@@ -439,8 +439,14 @@ pub fn infer() -> Result<(), Box<dyn std::error::Error>> {
         .expect("Should be able to load model the model weights from bytes");
 
     let model = config.model.init::<B>(&device).load_record(record);
+    let dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
+    let item = dataset.get(0).unwrap();
 
-    // TODO: do actual inference
+    let batcher = TrainingBatcher::<B>::new(device.clone());
+    let batch = batcher.batch(vec![item]);
+    let output = model.forward(batch.features);
+    let predicted = output.argmax(1).flatten::<1>(0, 1).into_scalar();
+    dbg!(predicted);
 
     Ok(())
 }
