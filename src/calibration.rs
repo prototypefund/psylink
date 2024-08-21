@@ -160,6 +160,7 @@ pub struct Model<B: Backend> {
 
 impl<B: AutodiffBackend> TrainStep<TrainingBatch<B>, ClassificationOutput<B>> for Model<B> {
     fn step(&self, batch: TrainingBatch<B>) -> TrainOutput<ClassificationOutput<B>> {
+        // TODO: is "item" the right name for this variable?...
         let item = self.forward_classification(batch.features, batch.targets);
 
         TrainOutput::new(self, item.loss.backward(), item)
