@@ -23,6 +23,9 @@ export global Logic {
     pure callback train-handler();
     pure callback load-handler();
     pure callback save-handler();
+    pure callback load-model-handler();
+    pure callback infer-start-handler();
+    pure callback infer-stop-handler();
 }
 
 export component LoadingPage {
@@ -93,6 +96,26 @@ export component GraphPage {
                     text: "Load test dataset";
                     clicked => {
                         Logic.load-handler();
+                    }
+                }
+            }
+            HorizontalBox {
+                Button {
+                    text: "Load test model";
+                    clicked => {
+                        Logic.load-model-handler();
+                    }
+                }
+                Button {
+                    text: "Infer";
+                    clicked => {
+                        Logic.infer-start-handler();
+                    }
+                }
+                Button {
+                    text: "Stop Inference";
+                    clicked => {
+                        Logic.infer-stop-handler();
                     }
                 }
             }
