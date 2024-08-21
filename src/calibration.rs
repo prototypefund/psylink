@@ -35,6 +35,9 @@ pub struct CalibController {
     pub dataset: PsyLinkDataset,
 }
 
+pub type DefaultBackend = Autodiff<Wgpu>;
+pub type DefaultModel = Model<Autodiff<Wgpu>>;
+
 impl CalibController {
     pub fn add_packet(&mut self, sample: Vec<u8>) {
         self.dataset.all_packets.push(sample);
@@ -60,10 +63,8 @@ impl CalibController {
         std::fs::create_dir_all(artifact_dir).ok();
     }
 
-    pub fn train(&self) -> Result<(), Box<dyn std::error::Error>> {
-        type MyBackend = Wgpu;
+    pub fn train(&self) -> Result<DefaultModel, Box<dyn std::error::Error>> {
         //type MyBackend = Wgpu<f32, i32>;
-        type MyAutodiffBackend = Autodiff<MyBackend>;
 
         // Create a default Wgpu device
         let device = burn::backend::wgpu::WgpuDevice::default();
@@ -72,12 +73,11 @@ impl CalibController {
         let artifact_dir = "/tmp/psylink";
 
         // Train the model
-        self.train2::<MyAutodiffBackend>(
+        self.train2::<DefaultBackend>(
             artifact_dir,
             TrainingConfig::new(ModelConfig::new(), AdamConfig::new()),
             device.clone(),
-        )?;
-        Ok(())
+        )
     }
 
     fn train2<B: AutodiffBackend>(
@@ -85,7 +85,7 @@ impl CalibController {
         artifact_dir: &str,
         config: TrainingConfig,
         device: B::Device,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<Model<B>, Box<dyn std::error::Error>> {
         Self::create_artifact_dir(artifact_dir);
         config
             .save(format!("{artifact_dir}/config.json"))
@@ -141,9 +141,10 @@ impl CalibController {
 
         let recorder = BinFileRecorder::<FullPrecisionSettings>::new();
         model_trained
+            .clone()
             .save_file(format!("{artifact_dir}/model_bin"), &recorder)
             .expect("Should be able to save the model");
-        Ok(())
+        Ok(model_trained)
     }
 }
 
@@ -416,6 +417,26 @@ impl<B: Backend> Batcher<TrainingSample, TrainingBatch<B>> for TrainingBatcher<B
     }
 }
 
+pub fn load_test_model() -> Model<DefaultBackend> {
+    let device = burn::backend::wgpu::WgpuDevice::default();
+    let config = TrainingConfig::load_binary(include_bytes!("data/test_model_config.json"))
+        .expect("Config should exist for the model");
+    let record = BinBytesRecorder::<FullPrecisionSettings>::default()
+        .load(TEST_MODEL.to_vec(), &device)
+        .expect("Should be able to load model the model weights from bytes");
+    let model = config.model.init::<DefaultBackend>(&device).load_record(record);
+    model
+}
+
+pub fn infer_item(model: Model<DefaultBackend>, item: TrainingSample) -> i32 {
+    let device = burn::backend::wgpu::WgpuDevice::default();
+    let batcher = TrainingBatcher::<DefaultBackend>::new(device.clone());
+    let batch = batcher.batch(vec![item]);
+    let output = model.forward(batch.features);
+    let predicted = output.argmax(1).flatten::<1>(0, 1).into_scalar();
+    return predicted;
+}
+
 pub fn train() -> Result<(), Box<dyn std::error::Error>> {
     let mut calib = CalibController::default();
     calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
@@ -425,27 +446,10 @@ pub fn train() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn infer() -> Result<(), Box<dyn std::error::Error>> {
-    type MyBackend = Wgpu;
-    type MyAutodiffBackend = Autodiff<MyBackend>;
-    type B = MyAutodiffBackend;
-
-    // let device = Default::default();
-    let device = burn::backend::wgpu::WgpuDevice::default();
-
-    let config = TrainingConfig::load_binary(include_bytes!("data/test_model_config.json"))
-        .expect("Config should exist for the model");
-    let record = BinBytesRecorder::<FullPrecisionSettings>::default()
-        .load(TEST_MODEL.to_vec(), &device)
-        .expect("Should be able to load model the model weights from bytes");
-
-    let model = config.model.init::<B>(&device).load_record(record);
+    let model = load_test_model();
     let dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     let item = dataset.get(0).unwrap();
-
-    let batcher = TrainingBatcher::<B>::new(device.clone());
-    let batch = batcher.batch(vec![item]);
-    let output = model.forward(batch.features);
-    let predicted = output.argmax(1).flatten::<1>(0, 1).into_scalar();
+    let predicted = infer_item(model, item);
     dbg!(predicted);
 
     Ok(())

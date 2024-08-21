@@ -16,6 +16,7 @@ pub async fn start(app: App) {
 
     let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
+    let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
 
     // At the moment, we store the set of keys that are currently being pressed
     // for the purpose of matching them with PsyLink signals in an upcoming feature.
@@ -69,11 +70,16 @@ pub async fn start(app: App) {
     });
 
     let calib_clone = Arc::clone(&calib);
+    let model_clone = Arc::clone(&model);
     ui.global::<Logic>().on_train_handler(move || {
         let calib = calib_clone.lock().unwrap();
         dbg!(&calib.dataset);
         let result = calib.train();
         dbg!(&result);
+        if let Ok(trained_model) = result {
+            let mut model = model_clone.lock().unwrap();
+            *model = Some(trained_model);
+        }
     });
 
     let calib_clone = Arc::clone(&calib);
@@ -87,6 +93,26 @@ pub async fn start(app: App) {
     ui.global::<Logic>().on_load_handler(move || {
         let mut calib = calib_clone.lock().unwrap();
         calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
+    });
+
+    let model_clone = Arc::clone(&model);
+    ui.global::<Logic>().on_load_model_handler(move || {
+        let mut model = model_clone.lock().unwrap();
+        *model = Some(calibration::load_test_model());
+    });
+
+    // let model_clone = Arc::clone(&model);
+    let calibration_flow_clone = Arc::clone(&calibration_flow);
+    ui.global::<Logic>().on_infer_start_handler(move || {
+        // let model = model_clone.lock().unwrap();
+        let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+        calibration_flow.currently_inferring = true;
+    });
+
+    let calibration_flow_clone = Arc::clone(&calibration_flow);
+    ui.global::<Logic>().on_infer_stop_handler(move || {
+        let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+        calibration_flow.currently_inferring = false;
     });
 
     let appclone = app.clone();
@@ -291,6 +317,7 @@ impl Plotter {
 #[derive(Clone, Default)]
 pub struct CalibrationFlow {
     pub currently_calibrating: bool,
+    pub currently_inferring: bool,
     pub action_count: usize,
     pub current_action: usize,
     pub remaining_key_presses: Vec<u32>,
