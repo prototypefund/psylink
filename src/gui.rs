@@ -223,6 +223,12 @@ pub async fn start(app: App) {
                 continue;
             }
             let packet = packet.unwrap();
+            if packet.is_duplicate {
+                if appclone.verbose > 0 {
+                    println!("Dropping duplicate packet.");
+                }
+                continue;
+            }
 
             // Add packet to plotter
             plotter.insert(&packet.samples);
