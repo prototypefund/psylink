@@ -55,6 +55,8 @@ component GraphPage {
     in property <string> text-calibration-timer;
     in property <bool> connected;
     in property <bool> calibrating;
+    in property <bool> inferring;
+    in property <bool> model-trained;
     in property <image> graph0;
 
     HorizontalBox {
@@ -108,12 +110,14 @@ component GraphPage {
                 }
                 Button {
                     text: "Infer";
+                    enabled: !inferring && model-trained;
                     clicked => {
                         Logic.infer-start-handler();
                     }
                 }
                 Button {
                     text: "Stop Inference";
+                    enabled: inferring;
                     clicked => {
                         Logic.infer-stop-handler();
                     }
@@ -172,7 +176,9 @@ export component MainWindow inherits Window {
     in property <string> text-calibration-instruction: "";
     in property <string> text-calibration-timer: "";
     in property <bool> calibrating: false;
+    in property <bool> inferring: false;
     in property <bool> connected: false;
+    in property <bool> model-trained: false;
     in property <string> pressedkeys: "";
     in property <int> page: 0;
     in property <image> graph0;
@@ -200,6 +206,8 @@ export component MainWindow inherits Window {
                     text-calibration-instruction: text-calibration-instruction;
                     text-calibration-timer: text-calibration-timer;
                     pressedkeys: pressedkeys;
+                    inferring: inferring;
+                    model-trained: model-trained;
                     graph0: graph0;
                 }
             }

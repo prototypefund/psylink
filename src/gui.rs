@@ -71,6 +71,7 @@ pub async fn start(app: App) {
 
     let calib_clone = Arc::clone(&calib);
     let model_clone = Arc::clone(&model);
+    let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_train_handler(move || {
         let calib = calib_clone.lock().unwrap();
         dbg!(&calib.dataset);
@@ -79,6 +80,9 @@ pub async fn start(app: App) {
         if let Ok(trained_model) = result {
             let mut model = model_clone.lock().unwrap();
             *model = Some(trained_model);
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                ui.set_model_trained(true);
+            });
         }
     });
 
@@ -96,23 +100,37 @@ pub async fn start(app: App) {
     });
 
     let model_clone = Arc::clone(&model);
+    let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_load_model_handler(move || {
         let mut model = model_clone.lock().unwrap();
         *model = Some(calibration::load_test_model());
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            ui.set_model_trained(true);
+        });
     });
 
-    // let model_clone = Arc::clone(&model);
     let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let ui_weak = ui.as_weak();
+    let model_clone = Arc::clone(&model);
     ui.global::<Logic>().on_infer_start_handler(move || {
-        // let model = model_clone.lock().unwrap();
-        let mut calibration_flow = calibration_flow_clone.lock().unwrap();
-        calibration_flow.currently_inferring = true;
+        let model = model_clone.lock().unwrap();
+        if (*model).is_some() {
+            let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+            calibration_flow.currently_inferring = true;
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                ui.set_inferring(true);
+            });
+        }
     });
 
     let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_infer_stop_handler(move || {
         let mut calibration_flow = calibration_flow_clone.lock().unwrap();
         calibration_flow.currently_inferring = false;
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            ui.set_inferring(false);
+        });
     });
 
     let appclone = app.clone();
