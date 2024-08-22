@@ -149,7 +149,9 @@ pub async fn start(app: App) {
                 let calib = calib_clone.lock().unwrap();
                 if (*model).is_some() {
                     let inferred = calib.infer_latest((*model).clone().unwrap());
-                    dbg!(inferred);
+                    if let Some(key) = inferred {
+                        println!("Inferred: {key}");
+                    }
                 } else {
                     { // Create a sub-scope to drop the MutexGuard afterwards
                         let mut calib_flow = calibration_flow_clone.lock().unwrap();

@@ -11,11 +11,11 @@ use burn::nn::{
 };
 use burn::optim::AdamConfig;
 use burn::prelude::*;
-use burn::record::BinFileRecorder;
 use burn::record::BinBytesRecorder;
-use burn::record::Recorder;
+use burn::record::BinFileRecorder;
 use burn::record::CompactRecorder;
 use burn::record::FullPrecisionSettings;
+use burn::record::Recorder;
 use burn::tensor::backend::AutodiffBackend;
 use burn::train::{
     metric::{AccuracyMetric, LossMetric},
@@ -290,25 +290,33 @@ impl Dataset<TrainingSample> for PsyLinkDataset {
     // signals from the past.
     fn get(&self, index: usize) -> Option<TrainingSample> {
         let datapoint = self.datapoints.get(index)?;
-
-        if datapoint.packet_index < SAMPLE_TIMESPAN {
-            return None;
-        }
-        let start = datapoint.packet_index - (SAMPLE_TIMESPAN - 1);
-        let end = datapoint.packet_index;
-        let packet = self.all_packets.get(start..=end)?;
-
-        Some(TrainingSample {
-            features: (*packet).iter().cloned().collect(),
-            label: datapoint.label,
-        })
+        self.get_sample_from_packet_index(datapoint.packet_index, datapoint.label)
     }
+
     fn len(&self) -> usize {
-        return self.datapoints.len();
+        self.datapoints.len()
     }
 }
 
 impl PsyLinkDataset {
+    fn get_sample_from_packet_index(
+        &self,
+        packet_index: usize,
+        label: u8,
+    ) -> Option<TrainingSample> {
+        if packet_index < SAMPLE_TIMESPAN {
+            return None;
+        }
+        let start = packet_index - (SAMPLE_TIMESPAN - 1);
+        let end = packet_index;
+        let packet = self.all_packets.get(start..=end)?;
+
+        Some(TrainingSample {
+            features: (*packet).iter().cloned().collect(),
+            label,
+        })
+    }
+
     fn split_train_validate(&self) -> (Self, Self) {
         let mut datapoints = self.datapoints.clone();
         let mut rng = thread_rng();
@@ -374,11 +382,8 @@ impl PsyLinkDataset {
     }
 
     pub fn get_latest(&self) -> Option<TrainingSample> {
-        let len: usize = self.len();
-        if len == 0 {
-            return None;
-        }
-        Some(self.get(len - 1)?)
+        let last = self.all_packets.len().saturating_sub(1);
+        self.get_sample_from_packet_index(last, 0)
     }
 }
 
