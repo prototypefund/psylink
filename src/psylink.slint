@@ -28,7 +28,7 @@ export global Logic {
     pure callback infer-stop-handler();
 }
 
-export component LoadingPage {
+component LoadingPage {
     in property <string> statustext;
     in property <bool> connected;
     HorizontalBox {
@@ -48,7 +48,7 @@ export component LoadingPage {
     }
 }
 
-export component GraphPage {
+component GraphPage {
     in property <string> statustext;
     in property <string> pressedkeys;
     in property <string> text-calibration-instruction;
