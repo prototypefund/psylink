@@ -5,6 +5,7 @@ use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
 use std::io::Write;
 use std::sync::{Arc, Mutex};
+use std::time::SystemTime;
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2048;
@@ -162,7 +163,16 @@ pub async fn start(app: App) {
         let mut decoder = protocol::Decoder::new(EMG_CHANNELS);
         let mut plotter = Plotter::new(TOTAL_CHANNELS);
 
+        let mut time = SystemTime::now();
+
         loop {
+            let dt = if let Ok(duration) = time.elapsed() {
+                duration.as_secs_f64()
+            } else {
+                0.1
+            };
+            time = SystemTime::now();
+
             // Receive PsyLink signal packet
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             if appclone.verbose > 1 {
@@ -197,7 +207,7 @@ pub async fn start(app: App) {
                 if calib_flow.currently_calibrating || calib_flow.currently_inferring {
                     if calib_flow.currently_calibrating {
                         // Update calibration flow state
-                        let state_changed = calib_flow.tick(0.2);
+                        let state_changed = calib_flow.tick(dt);
                         if state_changed {
                             new_calib_message = Some(calib_flow.generate_message());
                         }
@@ -273,7 +283,7 @@ pub async fn start(app: App) {
                     );
                 });
             }
-            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.05)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.01)).await;
         }
     });
     ui.run().unwrap();
