@@ -432,11 +432,11 @@ impl CalibrationFlow {
             };
             let delay = match new_state {
                 CalibrationFlowState::Init | CalibrationFlowState::Done => 0.0,
-                CalibrationFlowState::Welcome => 4.0,
-                CalibrationFlowState::NullActionWait => 3.0,
-                CalibrationFlowState::NullAction => 8.0,
-                CalibrationFlowState::GestureActionWait => 4.0,
-                CalibrationFlowState::GestureAction => 8.0,
+                CalibrationFlowState::Welcome => 3.0,
+                CalibrationFlowState::NullActionWait => 2.5,
+                CalibrationFlowState::NullAction => 5.0,
+                CalibrationFlowState::GestureActionWait => 2.5,
+                CalibrationFlowState::GestureAction => 5.0,
             };
 
             let state_change_happened = self.state != new_state;
