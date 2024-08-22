@@ -134,6 +134,33 @@ pub async fn start(app: App) {
         });
     });
 
+    let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let model_clone = Arc::clone(&model);
+    let calib_clone = Arc::clone(&calib);
+    tokio::spawn(async move {
+        loop {
+            let currently_inferring: bool = {
+                // Create a sub-scope to drop the MutexGuard afterwards
+                let calib_flow = calibration_flow_clone.lock().unwrap();
+                calib_flow.currently_inferring
+            };
+            if currently_inferring {
+                let model = model_clone.lock().unwrap();
+                let calib = calib_clone.lock().unwrap();
+                if (*model).is_some() {
+                    let inferred = calib.infer_latest((*model).clone().unwrap());
+                    dbg!(inferred);
+                } else {
+                    { // Create a sub-scope to drop the MutexGuard afterwards
+                        let mut calib_flow = calibration_flow_clone.lock().unwrap();
+                        calib_flow.currently_inferring = false;
+                    }
+                    println!("WARNING: attempted to infer before model is loaded");
+                }
+            }
+        }
+    });
+
     let appclone = app.clone();
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
@@ -204,7 +231,6 @@ pub async fn start(app: App) {
             {
                 let mut calib_flow = calibration_flow.lock().unwrap();
                 let mut calib = calib.lock().unwrap();
-                let model = model.lock().unwrap();
                 if calib_flow.currently_calibrating || calib_flow.currently_inferring {
                     if calib_flow.currently_calibrating {
                         // Update calibration flow state
@@ -228,16 +254,6 @@ pub async fn start(app: App) {
                             println!("Adding packet {sample:?}");
                         }
                         calib.add_packet(sample);
-
-                        if calib_flow.currently_inferring {
-                            if (*model).is_some() {
-                                let inferred = calib.infer_latest((*model).clone().unwrap());
-                                dbg!(inferred);
-                            } else {
-                                calib_flow.currently_inferring = false;
-                                println!("WARNING: attempted to infer before model is loaded");
-                            }
-                        }
 
                         // Add datapoints only if UI asks the user to perform some action
                         if let Some(label) = label_maybe {
