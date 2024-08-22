@@ -26,7 +26,8 @@ use rand::thread_rng;
 
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
-pub const TEST_DATASET: ([(usize, u8); 12450], [[u8; 14]; 20475]) = include!("data/test_dataset.rs");
+pub const TEST_DATASET: ([(usize, u8); 12450], [[u8; 14]; 20475]) =
+    include!("data/test_dataset.rs");
 pub const TEST_MODEL: &[u8] = include_bytes!("data/test_model.bin");
 
 // The front end API
@@ -442,7 +443,10 @@ pub fn load_test_model() -> Model<DefaultBackend> {
     let record = BinBytesRecorder::<FullPrecisionSettings>::default()
         .load(TEST_MODEL.to_vec(), &device)
         .expect("Should be able to load model the model weights from bytes");
-    let model = config.model.init::<DefaultBackend>(&device).load_record(record);
+    let model = config
+        .model
+        .init::<DefaultBackend>(&device)
+        .load_record(record);
     model
 }
 

@@ -153,7 +153,8 @@ pub async fn start(app: App) {
                         println!("Inferred: {key}");
                     }
                 } else {
-                    { // Create a sub-scope to drop the MutexGuard afterwards
+                    {
+                        // Create a sub-scope to drop the MutexGuard afterwards
                         let mut calib_flow = calibration_flow_clone.lock().unwrap();
                         calib_flow.currently_inferring = false;
                     }
