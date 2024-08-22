@@ -26,7 +26,7 @@ use rand::thread_rng;
 
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
-pub const TEST_DATASET: ([(usize, u8); 5000], [[u8; 14]; 8800]) = include!("data/test_dataset.rs");
+pub const TEST_DATASET: ([(usize, u8); 12450], [[u8; 14]; 20475]) = include!("data/test_dataset.rs");
 pub const TEST_MODEL: &[u8] = include_bytes!("data/test_model.bin");
 
 // The front end API
