@@ -138,7 +138,8 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         let mut device = loop {
-            tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+            // TODO: shorter delay here?
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
             if let Ok(device) = bluetooth::find_peripheral(appclone).await {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
