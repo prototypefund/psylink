@@ -7,6 +7,7 @@ repository = "https://codeberg.org/psylink/psylink"
 homepage = "https://psylink.me"
 categories = ["accessibility", "hardware-support", "science::neuroscience", "visualization"]
 keywords = ["hardware", "embedded", "bci", "neuroscience", "ai"]
+include = ["src/*", "Cargo.lock", "Cargo.toml", "LICENSE", "README.md", "build.rs"]
 edition = "2021"
 version = "0.1.0"
 
