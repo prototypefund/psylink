@@ -461,9 +461,11 @@ pub fn train() -> Result<(), Box<dyn std::error::Error>> {
 pub fn infer() -> Result<(), Box<dyn std::error::Error>> {
     let model = load_test_model();
     let dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
-    let item = dataset.get(0).unwrap();
-    let predicted = infer_item(model, item);
-    dbg!(predicted);
+
+    for item in dataset.iter() {
+        let predicted = infer_item(model.clone(), item);
+        dbg!(predicted);
+    }
 
     Ok(())
 }
