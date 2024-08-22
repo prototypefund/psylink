@@ -175,16 +175,19 @@ pub async fn start(app: App) {
             {
                 let mut calib_flow = calibration_flow.lock().unwrap();
                 let mut calib = calib.lock().unwrap();
-                if calib_flow.currently_calibrating {
-                    // Update calibration flow state
-                    let state_changed = calib_flow.tick(0.2);
-                    if state_changed {
-                        new_calib_message = Some(calib_flow.generate_message());
-                    }
-                    if calib_flow.timer > 0.0 {
-                        new_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
-                    } else {
-                        new_calib_timer = Some(String::new());
+                let model = model.lock().unwrap();
+                if calib_flow.currently_calibrating || calib_flow.currently_inferring {
+                    if calib_flow.currently_calibrating {
+                        // Update calibration flow state
+                        let state_changed = calib_flow.tick(0.2);
+                        if state_changed {
+                            new_calib_message = Some(calib_flow.generate_message());
+                        }
+                        if calib_flow.timer > 0.0 {
+                            new_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
+                        } else {
+                            new_calib_timer = Some(String::new());
+                        }
                     }
 
                     // Add samples to dataset
@@ -196,6 +199,16 @@ pub async fn start(app: App) {
                             println!("Adding packet {sample:?}");
                         }
                         calib.add_packet(sample);
+
+                        if calib_flow.currently_inferring {
+                            if (*model).is_some() {
+                                let inferred = calib.infer_latest((*model).clone().unwrap());
+                                dbg!(inferred);
+                            } else {
+                                calib_flow.currently_inferring = false;
+                                println!("WARNING: attempted to infer before model is loaded");
+                            }
+                        }
 
                         // Add datapoints only if UI asks the user to perform some action
                         if let Some(label) = label_maybe {

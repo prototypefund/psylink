@@ -63,6 +63,11 @@ impl CalibController {
         std::fs::create_dir_all(artifact_dir).ok();
     }
 
+    pub fn infer_latest(&self, model: DefaultModel) -> Option<i32> {
+        let item = self.dataset.get_latest()?;
+        Some(infer_item(model, item))
+    }
+
     pub fn train(&self) -> Result<DefaultModel, Box<dyn std::error::Error>> {
         //type MyBackend = Wgpu<f32, i32>;
 
@@ -366,6 +371,14 @@ impl PsyLinkDataset {
             datapoints,
             all_packets,
         }
+    }
+
+    pub fn get_latest(&self) -> Option<TrainingSample> {
+        let len: usize = self.len();
+        if len == 0 {
+            return None;
+        }
+        Some(self.get(len - 1)?)
     }
 }
 
