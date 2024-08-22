@@ -37,7 +37,7 @@ enum Commands {
     Gui {},
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     if cli.verbose > 1 {
