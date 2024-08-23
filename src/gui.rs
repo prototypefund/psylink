@@ -75,7 +75,6 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_train_handler(move || {
         let calib = calib_clone.lock().unwrap();
-        dbg!(&calib.dataset);
         let result = calib.train();
         dbg!(&result);
         if let Ok(trained_model) = result {
