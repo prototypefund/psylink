@@ -234,13 +234,6 @@ pub async fn start(app: App) {
         let mut time = SystemTime::now();
 
         loop {
-            let dt = if let Ok(duration) = time.elapsed() {
-                duration.as_secs_f64()
-            } else {
-                0.1
-            };
-            time = SystemTime::now();
-
             // Receive PsyLink signal packet
             let bytearray: Vec<u8> = device.read().await.unwrap(); // TODO: catch panic
             if appclone.verbose > 1 {
@@ -273,6 +266,14 @@ pub async fn start(app: App) {
                     if packet.lost_packets == 1 { "" } else { "s" }
                 );
             }
+
+            let dt = if let Ok(duration) = time.elapsed() {
+                duration.as_secs_f64()
+            } else {
+                0.1
+            };
+            time = SystemTime::now();
+
 
             // Add packet to plotter
             {
