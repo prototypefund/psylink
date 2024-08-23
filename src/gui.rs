@@ -18,6 +18,7 @@ pub async fn start(app: App) {
     let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
     let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
+    let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let do_quit = Arc::new(Mutex::new(false));
 
     // At the moment, we store the set of keys that are currently being pressed
@@ -134,6 +135,7 @@ pub async fn start(app: App) {
         });
     });
 
+    // The tread for inference/prediction
     let do_quit_clone = do_quit.clone();
     let calibration_flow_clone = Arc::clone(&calibration_flow);
     let model_clone = Arc::clone(&model);
@@ -155,8 +157,8 @@ pub async fn start(app: App) {
                         println!("Inferred: {key}");
                     }
                 } else {
+                    // Create a sub-scope to drop the MutexGuard afterwards
                     {
-                        // Create a sub-scope to drop the MutexGuard afterwards
                         let mut calib_flow = calibration_flow_clone.lock().unwrap();
                         calib_flow.currently_inferring = false;
                     }
@@ -174,7 +176,35 @@ pub async fn start(app: App) {
         }
     });
 
+
+    // The tread for plotting the signals
+    let do_quit_clone = do_quit.clone();
+    let plotter_clone = plotter.clone();
+    let ui_weak = ui.as_weak();
+    tokio::spawn(async move {
+        loop {
+            // Create a sub-scope to drop the MutexGuard afterwards
+            let plotter = plotter_clone.lock().unwrap().clone();
+            let rendered = plotter.render();
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                ui.set_graph0(slint::Image::from_rgb8(rendered));
+            });
+
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
+
+            let do_quit = *(do_quit_clone.lock().unwrap());
+            if do_quit {
+                if appclone.verbose > 0 {
+                    println!("Quitting plotter thread!");
+                }
+                break;
+            }
+        }
+    });
+
+
     let appclone = app.clone();
+    let plotter_clone = plotter.clone();
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         let mut device = loop {
@@ -202,7 +232,6 @@ pub async fn start(app: App) {
             ui.set_page(1);
         });
         let mut decoder = protocol::Decoder::new(EMG_CHANNELS);
-        let mut plotter = Plotter::new(TOTAL_CHANNELS);
 
         let mut time = SystemTime::now();
 
@@ -241,7 +270,10 @@ pub async fn start(app: App) {
             }
 
             // Add packet to plotter
-            plotter.insert(&packet.samples);
+            {
+                let mut plotter = plotter_clone.lock().unwrap();
+                plotter.insert(&packet.samples);
+            }
 
             let mut new_calib_message = None::<String>;
             let mut new_calib_timer = None::<String>;
@@ -299,7 +331,6 @@ pub async fn start(app: App) {
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
-                let plotter_clone = plotter.clone();
                 let keystate_clone = Arc::clone(&keystate);
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                     // Update displayed text
@@ -309,9 +340,6 @@ pub async fn start(app: App) {
                     if let Some(msg) = new_calib_timer {
                         ui.set_text_calibration_timer(msg.into());
                     }
-
-                    // Update plotter
-                    ui.set_graph0(plotter_clone.render());
 
                     // Update display of currently pressed keys
                     let keys = keystate_clone.lock().unwrap();
@@ -363,7 +391,7 @@ impl Plotter {
         }
     }
 
-    pub fn render(&self) -> slint::Image {
+    pub fn render(&self) -> SharedPixelBuffer<slint::Rgb8Pixel> {
         let mut pixel_buffer = SharedPixelBuffer::new(512, 386);
         let size = (pixel_buffer.width(), pixel_buffer.height());
         let backend = BitMapBackend::with_buffer(pixel_buffer.make_mut_bytes(), size);
@@ -399,7 +427,7 @@ impl Plotter {
         drop(chart);
         drop(root);
 
-        slint::Image::from_rgb8(pixel_buffer)
+        pixel_buffer
     }
 }
 
