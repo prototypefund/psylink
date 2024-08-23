@@ -18,6 +18,7 @@ pub async fn start(app: App) {
     let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
     let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
+    let do_quit = Arc::new(Mutex::new(false));
 
     // At the moment, we store the set of keys that are currently being pressed
     // for the purpose of matching them with PsyLink signals in an upcoming feature.
@@ -133,9 +134,11 @@ pub async fn start(app: App) {
         });
     });
 
+    let do_quit_clone = do_quit.clone();
     let calibration_flow_clone = Arc::clone(&calibration_flow);
     let model_clone = Arc::clone(&model);
     let calib_clone = Arc::clone(&calib);
+    let appclone = app.clone();
     tokio::spawn(async move {
         loop {
             let currently_inferring: bool = {
@@ -161,6 +164,13 @@ pub async fn start(app: App) {
                 }
             }
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
+            let do_quit = do_quit_clone.lock().unwrap();
+            if *do_quit {
+                if appclone.verbose > 0 {
+                    println!("Quitting inference thread!");
+                }
+                break;
+            }
         }
     });
 
@@ -313,6 +323,10 @@ pub async fn start(app: App) {
         }
     });
     ui.run().unwrap();
+
+    // Signal threads to terminate themselves
+    let mut do_quit = do_quit.lock().unwrap();
+    *do_quit = true;
 }
 
 #[derive(Clone)]
