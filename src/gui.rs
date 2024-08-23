@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
 slint::include_modules!();
 
-const MAX_POINTS: usize = 2048;
+const MAX_POINTS: usize = 2000;
 const EMG_CHANNELS: i32 = 8;
 const TOTAL_CHANNELS: usize = 14;
 
