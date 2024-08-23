@@ -109,14 +109,14 @@ component GraphPage {
                     }
                 }
                 Button {
-                    text: "Infer";
+                    text: "Predict";
                     enabled: !inferring && model-trained;
                     clicked => {
                         Logic.infer-start-handler();
                     }
                 }
                 Button {
-                    text: "Stop Inference";
+                    text: "Stop predicting";
                     enabled: inferring;
                     clicked => {
                         Logic.infer-stop-handler();
