@@ -18,6 +18,7 @@ pub async fn start(app: App) {
     let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
     let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
+    let gui_commands = Arc::new(Mutex::new(GuiCommands::default()));
     let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let do_quit = Arc::new(Mutex::new(false));
 
@@ -135,7 +136,7 @@ pub async fn start(app: App) {
         });
     });
 
-    // The tread for inference/prediction
+    // The thread for inference/prediction
     let do_quit_clone = do_quit.clone();
     let calibration_flow_clone = Arc::clone(&calibration_flow);
     let model_clone = Arc::clone(&model);
@@ -175,7 +176,7 @@ pub async fn start(app: App) {
         }
     });
 
-    // The tread for plotting the signals
+    // The thread for plotting the signals
     let do_quit_clone = do_quit.clone();
     let plotter_clone = plotter.clone();
     let ui_weak = ui.as_weak();
@@ -198,8 +199,10 @@ pub async fn start(app: App) {
         }
     });
 
+    // The thread for receiving and storing packages
     let appclone = app.clone();
     let plotter_clone = plotter.clone();
+    let gui_commands_clone = gui_commands.clone();
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         let mut device = loop {
@@ -277,9 +280,6 @@ pub async fn start(app: App) {
                 plotter.insert(&packet.samples);
             }
 
-            let mut new_calib_message = None::<String>;
-            let mut new_calib_timer = None::<String>;
-
             // Create a sub-scope because we must drop the MutexGuard before await
             {
                 let mut calib_flow = calibration_flow.lock().unwrap();
@@ -288,21 +288,24 @@ pub async fn start(app: App) {
                     if calib_flow.currently_calibrating {
                         // Update calibration flow state
                         let state_changed = calib_flow.tick(dt);
-                        if state_changed {
-                            new_calib_message = Some(calib_flow.generate_message());
-                            match calib_flow.state {
-                                CalibrationFlowState::Done => {
-                                    let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                                        ui.set_calibrating(false);
-                                    });
+                        {
+                            let mut gui_commands = gui_commands_clone.lock().unwrap();
+                            if state_changed {
+                                gui_commands.change_calib_message = Some(calib_flow.generate_message());
+                                match calib_flow.state {
+                                    CalibrationFlowState::Done => {
+                                        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                                            ui.set_calibrating(false);
+                                        });
+                                    }
+                                    _ => {}
                                 }
-                                _ => {}
                             }
-                        }
-                        if calib_flow.timer > 0.0 {
-                            new_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
-                        } else {
-                            new_calib_timer = Some(String::new());
+                            if calib_flow.timer > 0.0 {
+                                gui_commands.change_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
+                            } else {
+                                gui_commands.change_calib_timer = Some(String::new());
+                            }
                         }
                     }
 
@@ -331,35 +334,44 @@ pub async fn start(app: App) {
                 }
             }
 
-            // Create a sub-scope because we must drop the MutexGuard before await
-            {
-                let keystate_clone = Arc::clone(&keystate);
-                let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                    // Update displayed text
-                    if let Some(msg) = new_calib_message {
-                        ui.set_text_calibration_instruction(msg.into());
-                    }
-                    if let Some(msg) = new_calib_timer {
-                        ui.set_text_calibration_timer(msg.into());
-                    }
-
-                    // Update display of currently pressed keys
-                    let keys = keystate_clone.lock().unwrap();
-                    let mut keyvec: Vec<&String> = keys.iter().collect();
-                    keyvec.sort();
-                    ui.set_pressedkeys(
-                        keyvec
-                            .into_iter()
-                            .map(|s| s.as_str())
-                            .collect::<Vec<&str>>()
-                            .join("")
-                            .into(),
-                    );
-                });
-            }
-            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.01)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
         }
     });
+
+    // The thread for updating UI elements
+    let gui_commands_clone = gui_commands.clone();
+    let keystate_clone = Arc::clone(&keystate);
+    let ui_weak = ui.as_weak();
+    tokio::spawn(async move {
+        loop {
+            let gui_commands = gui_commands_clone.lock().unwrap().clone();
+            let keystate = keystate_clone.lock().unwrap().clone();
+
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                // Update displayed text
+                if let Some(msg) = gui_commands.change_calib_message {
+                    ui.set_text_calibration_instruction(msg.into());
+                }
+                if let Some(msg) = gui_commands.change_calib_timer {
+                    ui.set_text_calibration_timer(msg.into());
+                }
+
+                // Update display of currently pressed keys
+                let mut keyvec: Vec<&String> = keystate.iter().collect();
+                keyvec.sort();
+                ui.set_pressedkeys(
+                    keyvec
+                        .into_iter()
+                        .map(|s| s.as_str())
+                        .collect::<Vec<&str>>()
+                        .join("")
+                        .into(),
+                );
+            });
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
+        }
+    });
+
     ui.run().unwrap();
 
     // Signal threads to terminate themselves
@@ -431,6 +443,13 @@ impl Plotter {
 
         pixel_buffer
     }
+}
+
+/// A thread messaging struct for deferring UI changes to a separate thread
+#[derive(Clone, Default)]
+pub struct GuiCommands {
+    pub change_calib_message: Option<String>,
+    pub change_calib_timer: Option<String>,
 }
 
 #[derive(Clone, Default)]
