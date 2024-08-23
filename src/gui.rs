@@ -12,6 +12,8 @@ const MAX_POINTS: usize = 2000;
 const EMG_CHANNELS: i32 = 8;
 const TOTAL_CHANNELS: usize = 14;
 
+const BG_COLOR: RGBColor = RGBColor(0x1c, 0x1c, 0x1c);
+
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
 
@@ -411,7 +413,7 @@ impl Plotter {
         let size = (pixel_buffer.width(), pixel_buffer.height());
         let backend = BitMapBackend::with_buffer(pixel_buffer.make_mut_bytes(), size);
         let root = backend.into_drawing_area();
-        root.fill(&WHITE).expect("error filling drawing area");
+        root.fill(&BG_COLOR).expect("error filling drawing area");
 
         let x_axis = 0..MAX_POINTS;
         let y_axis = -(TOTAL_CHANNELS as f64 + 1.0)..1.0;
