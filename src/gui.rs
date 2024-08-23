@@ -175,7 +175,6 @@ pub async fn start(app: App) {
         }
     });
 
-
     // The tread for plotting the signals
     let do_quit_clone = do_quit.clone();
     let plotter_clone = plotter.clone();
@@ -198,7 +197,6 @@ pub async fn start(app: App) {
             }
         }
     });
-
 
     let appclone = app.clone();
     let plotter_clone = plotter.clone();
