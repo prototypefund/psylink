@@ -24,6 +24,7 @@ use burn::train::{
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
+const MAX_TRAINED_DATAPOINTS: usize = 4000;
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 pub const TEST_DATASET: ([(usize, u8); 12450], [[u8; 14]; 20475]) =
@@ -322,6 +323,7 @@ impl PsyLinkDataset {
         let mut datapoints = self.datapoints.clone();
         let mut rng = thread_rng();
         datapoints.shuffle(&mut rng);
+        datapoints.truncate(MAX_TRAINED_DATAPOINTS);
 
         let validation_split_index = (datapoints.len() * VALIDATION_SET_PERCENTAGE) / 100;
         let training_datapoints = if validation_split_index <= datapoints.len() {
