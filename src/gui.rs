@@ -256,6 +256,14 @@ pub async fn start(app: App) {
                         let state_changed = calib_flow.tick(dt);
                         if state_changed {
                             new_calib_message = Some(calib_flow.generate_message());
+                            match calib_flow.state {
+                                CalibrationFlowState::Done => {
+                                    let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                                        ui.set_calibrating(false);
+                                    });
+                                }
+                                _ => {}
+                            }
                         }
                         if calib_flow.timer > 0.0 {
                             new_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
