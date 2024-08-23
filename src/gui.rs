@@ -143,6 +143,7 @@ pub async fn start(app: App) {
     let calibration_flow_clone = Arc::clone(&calibration_flow);
     let model_clone = Arc::clone(&model);
     let calib_clone = Arc::clone(&calib);
+    let gui_commands_clone = gui_commands.clone();
     let appclone = app.clone();
     tokio::spawn(async move {
         loop {
@@ -157,7 +158,10 @@ pub async fn start(app: App) {
                 if (*model).is_some() {
                     let inferred = calib.infer_latest((*model).clone().unwrap());
                     if let Some(key) = inferred {
-                        println!("Inferred: {key}");
+                        {
+                            let mut gui_commands = gui_commands_clone.lock().unwrap();
+                            gui_commands.change_predicted_key = Some(key.to_string());
+                        }
                     }
                 } else {
                     // Create a sub-scope to drop the MutexGuard afterwards
@@ -359,6 +363,10 @@ pub async fn start(app: App) {
                     ui.set_text_calibration_timer(msg.into());
                 }
 
+                if let Some(msg) = gui_commands.change_predicted_key {
+                    ui.set_text_predicted(msg.into());
+                }
+
                 // Update display of currently pressed keys
                 let mut keyvec: Vec<&String> = keystate.iter().collect();
                 keyvec.sort();
@@ -453,6 +461,7 @@ impl Plotter {
 pub struct GuiCommands {
     pub change_calib_message: Option<String>,
     pub change_calib_timer: Option<String>,
+    pub change_predicted_key: Option<String>,
 }
 
 #[derive(Clone, Default)]

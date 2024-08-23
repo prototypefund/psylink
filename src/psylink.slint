@@ -53,6 +53,7 @@ component GraphPage {
     in property <string> pressedkeys;
     in property <string> text-calibration-instruction;
     in property <string> text-calibration-timer;
+    in property <string> text-predicted;
     in property <bool> connected;
     in property <bool> calibrating;
     in property <bool> inferring;
@@ -85,6 +86,14 @@ component GraphPage {
                     clicked => {
                         Logic.train-handler();
                     }
+                }
+                Text {
+                    horizontal-alignment: left;
+                    text: "Predicted key: ";
+                }
+                Text {
+                    horizontal-alignment: left;
+                    text: text-predicted;
                 }
             }
             HorizontalBox {
@@ -177,6 +186,7 @@ export component MainWindow inherits Window {
     in property <string> text-graph-title: "Not connected";
     in property <string> text-calibration-instruction: "";
     in property <string> text-calibration-timer: "";
+    in property <string> text-predicted: "n/a";
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
     in property <bool> connected: false;
@@ -207,6 +217,7 @@ export component MainWindow inherits Window {
                     statustext: text-graph-title;
                     text-calibration-instruction: text-calibration-instruction;
                     text-calibration-timer: text-calibration-timer;
+                    text-predicted: text-predicted;
                     pressedkeys: pressedkeys;
                     inferring: inferring;
                     model-trained: model-trained;
