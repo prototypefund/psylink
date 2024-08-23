@@ -23,7 +23,7 @@ rand = "0.8"
 uuid = "1.6"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-slint = { version = "1.7.2", optional = true, default-features = false, features = ["accessibility", "backend-qt", "backend-winit", "compat-1-2", "renderer-software", "std"] }
+slint = { version = "1.7.2", optional = true, default-features = false, features = ["accessibility", "backend-winit", "compat-1-2", "renderer-software", "std"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 slint = { version = "1.7.2", optional = true, default-features = false, features = ["accessibility", "backend-android-activity-06", "backend-winit", "compat-1-2", "renderer-software", "std"] }

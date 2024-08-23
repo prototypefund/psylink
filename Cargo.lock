@@ -1506,56 +1506,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7704b5fdd17b18ae31c4c1da5a2e0305a2bf17b5249300a9ee9ed7b72114c636"
 
 [[package]]
-name = "cpp"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfa65869ef853e45c60e9828aa08cdd1398cb6e13f3911d9cb2a079b144fcd64"
-dependencies = [
- "cpp_macros",
-]
-
-[[package]]
-name = "cpp_build"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e361fae2caf9758164b24da3eedd7f7d7451be30d90d8e7b5d2be29a2f0cf5b"
-dependencies = [
- "cc",
- "cpp_common",
- "lazy_static",
- "proc-macro2",
- "regex",
- "syn 2.0.66",
- "unicode-xid",
-]
-
-[[package]]
-name = "cpp_common"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e1a2532e4ed4ea13031c13bc7bc0dbca4aae32df48e9d77f0d1e743179f2ea1"
-dependencies = [
- "lazy_static",
- "proc-macro2",
- "syn 2.0.66",
-]
-
-[[package]]
-name = "cpp_macros"
-version = "0.5.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47ec9cc90633446f779ef481a9ce5a0077107dd5b87016440448d908625a83fd"
-dependencies = [
- "aho-corasick",
- "byteorder",
- "cpp_common",
- "lazy_static",
- "proc-macro2",
- "quote",
- "syn 2.0.66",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2903,26 +2853,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "i-slint-backend-qt"
-version = "1.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f9b499754d17f42b31fd3315c76c3824c3a2d6156b799a78aec3968cd89027f"
-dependencies = [
- "const-field-offset",
- "cpp",
- "cpp_build",
- "i-slint-common",
- "i-slint-core",
- "i-slint-core-macros",
- "lyon_path",
- "once_cell",
- "pin-project",
- "pin-weak",
- "qttypes",
- "vtable",
-]
-
-[[package]]
 name = "i-slint-backend-selector"
 version = "1.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2930,7 +2860,6 @@ checksum = "cbf8c0da7b5a493e224acd3a15fced7ce5dcfbf838717fae4a142be10c6a0318"
 dependencies = [
  "cfg-if",
  "i-slint-backend-linuxkms",
- "i-slint-backend-qt",
  "i-slint-backend-winit",
  "i-slint-common",
  "i-slint-core",
@@ -4589,17 +4518,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "qttypes"
-version = "0.2.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d405b0934e4176fb264d6ca597e5c8c2fba562fa155cba681ca160c1eb7edc6e"
-dependencies = [
- "cpp",
- "cpp_build",
- "semver",
-]
-
-[[package]]
 name = "quick-xml"
 version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5321,7 +5239,6 @@ checksum = "b07c20ca1e15b15a998b7e6aa9b160f1857238cdd0ce5536ce40dcc175dcae62"
 dependencies = [
  "const-field-offset",
  "i-slint-backend-android-activity",
- "i-slint-backend-qt",
  "i-slint-backend-selector",
  "i-slint-core",
  "num-traits",
