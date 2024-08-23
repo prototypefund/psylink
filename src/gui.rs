@@ -166,8 +166,7 @@ pub async fn start(app: App) {
                 }
             }
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
-            let do_quit = do_quit_clone.lock().unwrap();
-            if *do_quit {
+            if *(do_quit_clone.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting inference thread!");
                 }
@@ -191,9 +190,7 @@ pub async fn start(app: App) {
             });
 
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
-
-            let do_quit = *(do_quit_clone.lock().unwrap());
-            if do_quit {
+            if *(do_quit_clone.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting plotter thread!");
                 }
