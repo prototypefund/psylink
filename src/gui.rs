@@ -161,6 +161,7 @@ pub async fn start(app: App) {
                     println!("WARNING: attempted to infer before model is loaded");
                 }
             }
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
         }
     });
 
