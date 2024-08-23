@@ -248,7 +248,7 @@ impl ModelConfig {
 pub struct TrainingConfig {
     pub model: ModelConfig,
     pub optimizer: AdamConfig,
-    #[config(default = 10)]
+    #[config(default = 6)]
     pub num_epochs: usize,
     #[config(default = 32)]
     pub batch_size: usize,
