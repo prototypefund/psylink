@@ -263,6 +263,13 @@ pub async fn start(app: App) {
                 }
                 continue;
             }
+            if packet.lost_packets > 0 {
+                println!(
+                    "Warning: lost {} packet{}",
+                    packet.lost_packets,
+                    if packet.lost_packets == 1 { "" } else { "s" }
+                );
+            }
 
             // Add packet to plotter
             {
