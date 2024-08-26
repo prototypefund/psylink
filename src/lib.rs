@@ -8,11 +8,12 @@ pub mod firmware;
 pub mod gui;
 #[allow(dead_code)]
 pub mod protocol;
+pub mod fakeinput;
 
 pub mod prelude {
     #[cfg(feature = "gui")]
     pub use crate::gui;
-    pub use crate::{bluetooth, calibration, firmware, protocol};
+    pub use crate::{bluetooth, calibration, fakeinput, firmware, protocol};
 
     #[derive(Clone, Copy)]
     pub struct App {

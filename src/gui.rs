@@ -23,6 +23,7 @@ pub async fn start(app: App) {
     let gui_commands = Arc::new(Mutex::new(GuiCommands::default()));
     let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let do_quit = Arc::new(Mutex::new(false));
+    let fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new()));
 
     // At the moment, we store the set of keys that are currently being pressed
     // for the purpose of matching them with PsyLink signals in an upcoming feature.
@@ -144,6 +145,7 @@ pub async fn start(app: App) {
     let model_clone = Arc::clone(&model);
     let calib_clone = Arc::clone(&calib);
     let gui_commands_clone = gui_commands.clone();
+    let fakeinput_clone = fakeinput.clone();
     let appclone = app.clone();
     tokio::spawn(async move {
         loop {
@@ -161,6 +163,10 @@ pub async fn start(app: App) {
                         {
                             let mut gui_commands = gui_commands_clone.lock().unwrap();
                             gui_commands.change_predicted_key = Some(key.to_string());
+                        }
+                        {
+                            let mut fakeinput = fakeinput_clone.lock().unwrap();
+                            fakeinput.set_predicted(key as u8);
                         }
                     }
                 } else {
