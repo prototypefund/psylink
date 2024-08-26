@@ -91,6 +91,18 @@ pub async fn start(app: App) {
             settings.disable_gyroscope = !checked;
         });
 
+    let fakeinput_clone = fakeinput.clone();
+    ui.global::<Logic>()
+        .on_set_option_keypress_value(move |chosen_text: slint::SharedString| {
+            let action = match chosen_text.as_str() {
+                "Nothing" => None,
+                "Space" => Some(' '),
+                _ => Some(chosen_text.chars().next().unwrap()),
+            };
+            let mut fakeinput = fakeinput_clone.lock().unwrap();
+            fakeinput.set_action(1, action);
+        });
+
     let calib_clone = Arc::clone(&calib);
     let model_clone = Arc::clone(&model);
     let ui_weak = ui.as_weak();

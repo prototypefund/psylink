@@ -23,6 +23,17 @@ impl InputState {
         obj
     }
 
+    pub fn set_action(&mut self, index: usize, action: Option<char>) {
+        if index < self.actions.len() {
+            self.actions[index] = action;
+        } else if self.verbose {
+            println!(
+                "Failed to assign action, index too large. Index: {index}, action vector size: {}",
+                self.actions.len()
+            );
+        }
+    }
+
     pub fn set_predicted(&mut self, prediction: u8) {
         if self.active_prediction == prediction {
             // If the same key is predicted that's already being pressed,
