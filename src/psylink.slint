@@ -4,6 +4,7 @@ import {
     Spinner,
     StandardListView,
     TabWidget,
+    Switch,
     VerticalBox
 } from "std-widgets.slint";
 
@@ -26,6 +27,8 @@ export global Logic {
     pure callback load-model-handler();
     pure callback infer-start-handler();
     pure callback infer-stop-handler();
+    pure callback set-option-accelerometer(bool);
+    pure callback set-option-gyroscope(bool);
 }
 
 component LoadingPage {
@@ -130,6 +133,22 @@ component GraphPage {
                     enabled: inferring;
                     clicked => {
                         Logic.infer-stop-handler();
+                    }
+                }
+            }
+            HorizontalBox {
+                Switch {
+                    checked: true;
+                    text: "Activate Gyroscope";
+                    toggled => {
+                        Logic.set-option-gyroscope(self.checked);
+                    }
+                }
+                Switch {
+                    checked: true;
+                    text: "Activate Accelerometer";
+                    toggled => {
+                        Logic.set-option-accelerometer(self.checked);
                     }
                 }
             }

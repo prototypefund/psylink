@@ -19,6 +19,7 @@ pub async fn start(app: App) {
 
     let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
+    let settings = Arc::new(Mutex::new(GUISettings::default()));
     let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
     let gui_commands = Arc::new(Mutex::new(GuiCommands::default()));
     let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
@@ -75,6 +76,20 @@ pub async fn start(app: App) {
             ui.set_text_calibration_instruction(format!("No calibration in progress.").into());
         });
     });
+
+    let settings_clone = Arc::clone(&settings);
+    ui.global::<Logic>()
+        .on_set_option_accelerometer(move |checked: bool| {
+            let mut settings = settings_clone.lock().unwrap();
+            settings.disable_accelerometer = !checked;
+        });
+
+    let settings_clone = Arc::clone(&settings);
+    ui.global::<Logic>()
+        .on_set_option_gyroscope(move |checked: bool| {
+            let mut settings = settings_clone.lock().unwrap();
+            settings.disable_gyroscope = !checked;
+        });
 
     let calib_clone = Arc::clone(&calib);
     let model_clone = Arc::clone(&model);
@@ -215,6 +230,7 @@ pub async fn start(app: App) {
     let appclone = app.clone();
     let plotter_clone = plotter.clone();
     let gui_commands_clone = gui_commands.clone();
+    let settings_clone = Arc::clone(&settings);
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         let mut device = loop {
@@ -258,7 +274,11 @@ pub async fn start(app: App) {
             }
 
             // Decode packet
-            let packet = decoder.decode_packet(bytearray);
+            let (enable_accelerometer, enable_gyroscope) = {
+                let settings = settings_clone.lock().unwrap();
+                (!settings.disable_accelerometer, !settings.disable_gyroscope)
+            };
+            let packet = decoder.decode_packet(bytearray, enable_accelerometer, enable_gyroscope);
             if packet.is_err() {
                 let message: String = packet.unwrap_err();
                 println!("Error: {message}");
@@ -469,6 +489,12 @@ pub struct GuiCommands {
     pub change_calib_message: Option<String>,
     pub change_calib_timer: Option<String>,
     pub change_predicted_key: Option<String>,
+}
+
+#[derive(Clone, Default)]
+pub struct GUISettings {
+    pub disable_gyroscope: bool,
+    pub disable_accelerometer: bool,
 }
 
 #[derive(Clone, Default)]

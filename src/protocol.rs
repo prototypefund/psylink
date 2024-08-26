@@ -27,7 +27,12 @@ impl Decoder {
         }
     }
 
-    pub fn decode_packet(&mut self, raw_packet_payload: Vec<u8>) -> Result<Packet, String> {
+    pub fn decode_packet(
+        &mut self,
+        raw_packet_payload: Vec<u8>,
+        enable_accelerometer: bool,
+        enable_gyroscope: bool,
+    ) -> Result<Packet, String> {
         let tick: i32 = *raw_packet_payload
             .get(0)
             .ok_or("Failed to decode packet, no Tick supplied")? as i32;
@@ -36,8 +41,14 @@ impl Decoder {
             .get(1)
             .ok_or("Failed to decode packet, no sampling delay byte supplied")?;
 
+        let gyro_accel_range = match (enable_accelerometer, enable_gyroscope) {
+            (true, true) => 2..8,
+            (true, false) => 5..8,
+            (false, true) => 2..5,
+            (false, false) => 2..2,
+        };
         let gyroscope_accelerometer: &[u8] = raw_packet_payload
-            .get(2..8)
+            .get(gyro_accel_range)
             .ok_or("Failed to decode packet, no gyroscope/accelerometer data supplied")?;
 
         let (min_sampling_delay, max_sampling_delay) = decompress_delay(delay_byte);
