@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PsyLink
+GenericName=User Interface for the PsyLink Electrode Armband
+Icon=psylink
+Categories=Utility;
+Exec=psylink
+Terminal=true
