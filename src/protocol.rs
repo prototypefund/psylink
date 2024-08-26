@@ -41,14 +41,8 @@ impl Decoder {
             .get(1)
             .ok_or("Failed to decode packet, no sampling delay byte supplied")?;
 
-        let gyro_accel_range = match (enable_accelerometer, enable_gyroscope) {
-            (true, true) => 2..8,
-            (true, false) => 5..8,
-            (false, true) => 2..5,
-            (false, false) => 2..2,
-        };
         let gyroscope_accelerometer: &[u8] = raw_packet_payload
-            .get(gyro_accel_range)
+            .get(2..8)
             .ok_or("Failed to decode packet, no gyroscope/accelerometer data supplied")?;
 
         let (min_sampling_delay, max_sampling_delay) = decompress_delay(delay_byte);
@@ -84,12 +78,22 @@ impl Decoder {
             })
             .collect();
 
-        for value in gyroscope_accelerometer {
-            let mut repeated = Vec::<u8>::new();
-            for _ in 0..sample_count {
-                repeated.push(*value);
+        for (i, value) in gyroscope_accelerometer.iter().enumerate() {
+            let enable = match (i, enable_gyroscope, enable_accelerometer) {
+                (0..3, true, _) => true, // the first 3 values are gyroscope data
+                (3..6, _, true) => true, // the last 3 values are accelerometer data
+                _ => false,
+            };
+            if enable {
+                let mut repeated = Vec::<u8>::new();
+                for _ in 0..sample_count {
+                    repeated.push(*value);
+                }
+                samples.push(repeated);
+            } else {
+                // TODO: can this be written more efficiently?
+                samples.push(std::iter::repeat(0).take(sample_count as usize).collect());
             }
-            samples.push(repeated);
         }
 
         let extra_channels_count = gyroscope_accelerometer.len();
