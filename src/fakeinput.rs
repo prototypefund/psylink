@@ -12,11 +12,13 @@ pub struct InputState {
     pub active_prediction: u8,
     pub last_prediction: u8,
     pub actions: Vec<Option<char>>,
+    pub verbose: bool,
 }
 
 impl InputState {
-    pub fn new() -> Self {
+    pub fn new(verbose: bool) -> Self {
         let mut obj = Self::default();
+        obj.verbose = verbose;
         obj.actions = vec![None, Some('a')];
         obj
     }
@@ -46,11 +48,15 @@ impl InputState {
         if self.debounce_count == 0 {
             if let Some(Some(key)) = self.actions.get(self.active_prediction as usize) {
                 self.input.release(*key);
-                println!("releasing {key}");
+                if self.verbose {
+                    println!("Releasing {key}");
+                }
             }
             if let Some(Some(key)) = self.actions.get(prediction as usize) {
                 self.input.press(*key);
-                println!("pressing {key}");
+                if self.verbose {
+                    println!("Pressing {key}");
+                }
             }
             self.active_prediction = prediction;
         }

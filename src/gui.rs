@@ -23,7 +23,7 @@ pub async fn start(app: App) {
     let gui_commands = Arc::new(Mutex::new(GuiCommands::default()));
     let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let do_quit = Arc::new(Mutex::new(false));
-    let fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new()));
+    let fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new(app.verbose > 0)));
 
     // At the moment, we store the set of keys that are currently being pressed
     // for the purpose of matching them with PsyLink signals in an upcoming feature.
