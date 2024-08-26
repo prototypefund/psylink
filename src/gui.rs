@@ -286,7 +286,6 @@ pub async fn start(app: App) {
             };
             time = SystemTime::now();
 
-
             // Add packet to plotter
             {
                 let mut plotter = plotter_clone.lock().unwrap();
@@ -304,7 +303,8 @@ pub async fn start(app: App) {
                         {
                             let mut gui_commands = gui_commands_clone.lock().unwrap();
                             if state_changed {
-                                gui_commands.change_calib_message = Some(calib_flow.generate_message());
+                                gui_commands.change_calib_message =
+                                    Some(calib_flow.generate_message());
                                 match calib_flow.state {
                                     CalibrationFlowState::Done => {
                                         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
@@ -315,7 +315,8 @@ pub async fn start(app: App) {
                                 }
                             }
                             if calib_flow.timer > 0.0 {
-                                gui_commands.change_calib_timer = Some(format!("{:.1}s", calib_flow.timer));
+                                gui_commands.change_calib_timer =
+                                    Some(format!("{:.1}s", calib_flow.timer));
                             } else {
                                 gui_commands.change_calib_timer = Some(String::new());
                             }

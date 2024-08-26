@@ -3,12 +3,12 @@
 
 pub mod bluetooth;
 pub mod calibration;
+pub mod fakeinput;
 pub mod firmware;
 #[cfg(feature = "gui")]
 pub mod gui;
 #[allow(dead_code)]
 pub mod protocol;
-pub mod fakeinput;
 
 pub mod prelude {
     #[cfg(feature = "gui")]

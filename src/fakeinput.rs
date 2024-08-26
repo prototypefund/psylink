@@ -2,7 +2,6 @@ use enigo::{
     Direction::{Press, Release},
     Enigo, Key, Keyboard, Settings,
 };
-// use std::collections::HashSet;
 
 const DEBOUNCE_THRESHOLD: u32 = 2;
 
@@ -72,10 +71,14 @@ impl Default for AbstractionLayer {
 
 impl AbstractionLayer {
     pub fn press(&mut self, key: char) {
-        self.enigo.key(Key::Unicode(key), Press).expect("Key press failed");
+        self.enigo
+            .key(Key::Unicode(key), Press)
+            .expect("Key press failed");
     }
 
     pub fn release(&mut self, key: char) {
-        self.enigo.key(Key::Unicode(key), Release).expect("Key press failed");
+        self.enigo
+            .key(Key::Unicode(key), Release)
+            .expect("Key press failed");
     }
 }
