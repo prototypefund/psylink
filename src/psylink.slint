@@ -48,6 +48,10 @@ component LoadingPage {
                         height: 32pt;
                         width: 32pt;
                         states [
+                            // We could have used the slint builtin "animation-tick()"
+                            // but that introduced animation delays when the mouse
+                            // was being moved around. This may be fixed in the future,
+                            // so maybe re-evaluate the use of "animation-tick()" later.
                             step0 when mod(animation-tick, 3) == 1: {
                                 source: @image-url("data/spinner-step1.png");
                             }
