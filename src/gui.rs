@@ -239,6 +239,7 @@ pub async fn start(app: App) {
     });
 
     // The thread for receiving and storing packages
+    let do_quit_clone = do_quit.clone();
     let appclone = app.clone();
     let plotter_clone = plotter.clone();
     let gui_commands_clone = gui_commands.clone();
@@ -381,6 +382,12 @@ pub async fn start(app: App) {
             }
 
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
+            if *(do_quit_clone.lock().unwrap()) {
+                if appclone.verbose > 0 {
+                    println!("Quitting networking thread!");
+                }
+                break;
+            }
         }
     });
 
@@ -388,6 +395,7 @@ pub async fn start(app: App) {
     let gui_commands_clone = gui_commands.clone();
     let keystate_clone = Arc::clone(&keystate);
     let ui_weak = ui.as_weak();
+    let do_quit_clone = do_quit.clone();
     tokio::spawn(async move {
         loop {
             let gui_commands = gui_commands_clone.lock().unwrap().clone();
@@ -419,6 +427,13 @@ pub async fn start(app: App) {
                 );
             });
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
+
+            if *(do_quit_clone.lock().unwrap()) {
+                if appclone.verbose > 0 {
+                    println!("Quitting UI update thread!");
+                }
+                break;
+            }
         }
     });
 
