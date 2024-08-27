@@ -35,7 +35,6 @@ export global Logic {
 component LoadingPage {
     in property <string> statustext;
     in property <bool> connected;
-    in property <int> animation-tick;
 
     HorizontalBox {
         alignment: center;
@@ -48,13 +47,13 @@ component LoadingPage {
                         height: 32pt;
                         width: 32pt;
                         states [
-                            step0 when mod(animation-tick, 3) == 1: {
-                                source: @image-url("data/spinner-step1.png");
-                            }
-                            step1 when mod(animation-tick, 3) == 2: {
+                            step2 when mod(animation-tick(), 1s) / 1s >= 0.66: {
                                 source: @image-url("data/spinner-step2.png");
                             }
-                            step2 when true: {
+                            step1 when mod(animation-tick(), 1s) / 1s >= 0.33: {
+                                source: @image-url("data/spinner-step1.png");
+                            }
+                            step0 when true: {
                                 source: @image-url("data/spinner-step0.png");
                             }
                         ]
@@ -237,7 +236,6 @@ export component MainWindow inherits Window {
     in property <string> pressedkeys: "";
     in property <int> page: 0;
     in property <image> graph0;
-    in property <int> animation-tick: 0;
 
     init => {
         focusscope.focus();
@@ -251,7 +249,6 @@ export component MainWindow inherits Window {
                 LoadingPage {
                     statustext: text-connection-title;
                     connected: connected;
-                    animation-tick: animation-tick;
                 }
             }
             Tab {

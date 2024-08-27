@@ -5,7 +5,7 @@ use slint::SharedPixelBuffer;
 use std::collections::{HashSet, VecDeque};
 use std::io::Write;
 use std::sync::{Arc, Mutex};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::SystemTime;
 slint::include_modules!();
 
 const MAX_POINTS: usize = 2000;
@@ -412,10 +412,6 @@ pub async fn start(app: App) {
 
                 if let Some(msg) = gui_commands.change_predicted_key {
                     ui.set_text_predicted(msg.into());
-                }
-
-                if let Ok(now) = SystemTime::now().duration_since(UNIX_EPOCH) {
-                    ui.set_animation_tick(((now.as_millis() % 1000000) / 200) as i32);
                 }
 
                 // Update display of currently pressed keys
