@@ -415,7 +415,7 @@ pub async fn start(app: App) {
                 }
 
                 if let Ok(now) = SystemTime::now().duration_since(UNIX_EPOCH) {
-                    ui.set_animation_tick(((now.as_millis() % 1000000) / 200) as i32);
+                    ui.set_animation_tick(((now.as_millis() % 1000000) / 100) as i32);
                 }
 
                 // Update display of currently pressed keys

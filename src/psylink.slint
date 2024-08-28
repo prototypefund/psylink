@@ -52,13 +52,20 @@ component LoadingPage {
                             // but that introduced animation delays when the mouse
                             // was being moved around. This may be fixed in the future,
                             // so maybe re-evaluate the use of "animation-tick()" later.
-                            step0 when mod(animation-tick, 3) == 1: {
+                            step3 when mod(animation-tick, 5) == 1: {
+                                // only outer tick visible
+                                source: @image-url("data/spinner-step3.png");
+                            }
+                            step1 when mod(animation-tick, 5) == 2: {
+                                // no ticks visible
                                 source: @image-url("data/spinner-step1.png");
                             }
-                            step1 when mod(animation-tick, 3) == 2: {
+                            step2 when mod(animation-tick, 5) == 3: {
+                                // only inner tick visible
                                 source: @image-url("data/spinner-step2.png");
                             }
-                            step2 when true: {
+                            step0 when true: {
+                                // all ticks visible
                                 source: @image-url("data/spinner-step0.png");
                             }
                         ]
