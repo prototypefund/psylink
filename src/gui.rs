@@ -22,6 +22,7 @@ pub async fn start(app: App) {
     let settings = Arc::new(Mutex::new(GUISettings::default()));
     let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
     let gui_commands = Arc::new(Mutex::new(GuiCommands::default()));
+    let state = Arc::new(Mutex::new(GUIState::default()));
     let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let do_quit = Arc::new(Mutex::new(false));
     let fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new(app.verbose > 0)));
@@ -205,7 +206,7 @@ pub async fn start(app: App) {
                     println!("WARNING: attempted to infer before model is loaded");
                 }
             }
-            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
             if *(do_quit_clone.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting inference thread!");
@@ -218,17 +219,22 @@ pub async fn start(app: App) {
     // The thread for plotting the signals
     let do_quit_clone = do_quit.clone();
     let plotter_clone = plotter.clone();
+    let state_clone = state.clone();
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         loop {
-            // Create a sub-scope to drop the MutexGuard afterwards
-            let plotter = plotter_clone.lock().unwrap().clone();
-            let rendered = plotter.render();
-            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                ui.set_graph0(slint::Image::from_rgb8(rendered));
-            });
+            if state_clone.lock().unwrap().connected {
+                let plotter = plotter_clone.lock().unwrap().clone();
+                let rendered = plotter.render();
+                let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                    ui.set_graph0(slint::Image::from_rgb8(rendered));
+                });
+                tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
+            }
+            else {
+                tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.2)).await;
+            }
 
-            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
             if *(do_quit_clone.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting plotter thread!");
@@ -244,6 +250,7 @@ pub async fn start(app: App) {
     let plotter_clone = plotter.clone();
     let gui_commands_clone = gui_commands.clone();
     let settings_clone = Arc::clone(&settings);
+    let state_clone = state.clone();
     let ui_weak = ui.as_weak();
     tokio::spawn(async move {
         let mut device = loop {
@@ -261,6 +268,7 @@ pub async fn start(app: App) {
             }
         };
         device.find_characteristics().await;
+        state_clone.lock().unwrap().connected = true;
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_connected(true);
@@ -526,6 +534,11 @@ pub struct GuiCommands {
 pub struct GUISettings {
     pub disable_gyroscope: bool,
     pub disable_accelerometer: bool,
+}
+
+#[derive(Clone, Default)]
+pub struct GUIState {
+    pub connected: bool,
 }
 
 #[derive(Clone, Default)]
