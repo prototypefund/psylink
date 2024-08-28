@@ -639,7 +639,7 @@ impl CalibrationFlow {
         match self.state {
             CalibrationFlowState::Init => "Initializing...".into(),
             CalibrationFlowState::Welcome => {
-                "Calibration starting. Please follow the instructions.".into()
+                "Please follow the instructions.".into()
             }
             CalibrationFlowState::NullActionWait => "⚠️ Prepare to rest your arm.".into(),
             CalibrationFlowState::NullAction => "⛔ Rest your arm now.".into(),
