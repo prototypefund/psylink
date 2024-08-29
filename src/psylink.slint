@@ -30,7 +30,7 @@ export global Logic {
     pure callback infer-stop-handler();
     pure callback set-option-accelerometer(bool);
     pure callback set-option-gyroscope(bool);
-    pure callback set-option-keypress-value(string);
+    pure callback set-option-keypress-value(int, string);
 }
 
 component LoadingPage {
@@ -94,62 +94,103 @@ component GraphPage {
     in property <image> graph0;
 
     HorizontalBox {
+        // just for centering
         alignment: center;
-        VerticalBox {
+
+        VerticalLayout {
+            // all the rows
             alignment: center;
-            HorizontalBox {
+
+            HorizontalLayout {
+                // The top row
                 alignment: start;
-                Button {
-                    enabled: !calibrating && connected;
-                    text: "Start calibration";
-                    clicked => {
-                        Logic.start-calibration-handler(1);
+
+                VerticalBox {
+                    alignment: end;
+                    HorizontalBox {
+                        Button {
+                            enabled: connected;
+                            text: calibrating ? "Stop calibration" : "Start calibration";
+                            clicked => {
+                                if calibrating {
+                                    Logic.stop-calibration-handler();
+                                } else {
+                                    Logic.start-calibration-handler(1);
+                                }
+                            }
+                        }
+                        Button {
+                            text: "Train AI";
+                            clicked => {
+                                Logic.train-handler();
+                            }
+                        }
+                        Button {
+                            text: inferring ? "Stop Predicting" : "Predict";
+                            enabled: model-trained;
+                            clicked => {
+                                if inferring {
+                                    Logic.infer-stop-handler();
+                                } else {
+                                    Logic.infer-start-handler();
+                                }
+                            }
+                        }
                     }
                 }
-                Button {
-                    enabled: calibrating;
-                    text: "Stop calibration";
-                    clicked => {
-                        Logic.stop-calibration-handler();
+                VerticalLayout {
+                    alignment: center;
+                    visible: inferring;
+                    HorizontalBox {
+                        Text {
+                            horizontal-alignment: left;
+                            text: "Predicted: ";
+                        }
                     }
                 }
-                Button {
-                    text: "Train";
-                    clicked => {
-                        Logic.train-handler();
+                VerticalLayout {
+                    alignment: center;
+                    visible: inferring;
+                    HorizontalBox {
+                        Text {
+                            horizontal-alignment: left;
+                            text: text-predicted;
+                            font-size: 18pt;
+                        }
                     }
-                }
-                Text {
-                    horizontal-alignment: left;
-                    text: "Predicted key: ";
-                }
-                Text {
-                    horizontal-alignment: left;
-                    text: text-predicted;
-                    font-size: 32pt;
                 }
             }
-            HorizontalBox {
-                alignment: start;
-                Button {
-                    text: "Predict";
-                    enabled: !inferring && model-trained;
-                    clicked => {
-                        Logic.infer-start-handler();
-                    }
+            HorizontalLayout {
+                Text {
+                    text: "Action 1";
                 }
-                Button {
-                    text: "Stop predicting";
-                    enabled: inferring;
-                    clicked => {
-                        Logic.infer-stop-handler();
+                Text {
+                    text: "Action 2";
+                }
+                Text {
+                    text: "Action 3";
+                }
+            }
+            HorizontalLayout {
+                ComboBox {
+                    model: ["Nothing", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                    current-value: "w";
+                    selected(value) => {
+                        Logic.set-option-keypress-value(1, value);
                     }
                 }
                 ComboBox {
                     model: ["Nothing", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
                     current-value: "a";
                     selected(value) => {
-                        Logic.set-option-keypress-value(value);
+                        Logic.set-option-keypress-value(2, value);
+                    }
+                }
+                ComboBox {
+                    model: ["Nothing", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                    current-value: "d";
+                    selected(value) => {
+                        Logic.set-option-keypress-value(3, value);
                     }
                 }
             }

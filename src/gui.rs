@@ -98,14 +98,14 @@ pub async fn start(app: App) {
 
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
     ui.global::<Logic>()
-        .on_set_option_keypress_value(move |chosen_text: slint::SharedString| {
+        .on_set_option_keypress_value(move |action_id: i32, chosen_text: slint::SharedString| {
             let action = match chosen_text.as_str() {
                 "Nothing" => None,
                 "Space" => Some(' '),
                 _ => Some(chosen_text.chars().next().unwrap()),
             };
             let mut fakeinput = mutex_fakeinput.lock().unwrap();
-            fakeinput.set_action(1, action);
+            fakeinput.set_action(action_id as usize, action);
         });
 
     let ui_weak = ui.as_weak();
