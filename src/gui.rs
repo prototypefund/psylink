@@ -37,7 +37,7 @@ pub async fn start(app: App) {
     let orig_mutex_keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
 
     let ui_weak = ui.as_weak();
-    let mutex_keystate = Arc::clone(&orig_mutex_keystate);
+    let mutex_keystate = orig_mutex_keystate.clone();
     ui.global::<Logic>()
         .on_key_handler(move |key: slint::SharedString, pressed: bool| {
             let mut keystate = mutex_keystate.lock().unwrap();
@@ -57,8 +57,8 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let mutex_flow = Arc::clone(&orig_mutex_flow);
-    let mutex_calib = Arc::clone(&orig_mutex_calib);
+    let mutex_flow = orig_mutex_flow.clone();
+    let mutex_calib = orig_mutex_calib.clone();
     ui.global::<Logic>()
         .on_start_calibration_handler(move |actions: i32| {
             let mut calibration_flow = mutex_flow.lock().unwrap();
@@ -72,7 +72,7 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let mutex_flow = Arc::clone(&orig_mutex_flow);
+    let mutex_flow = orig_mutex_flow.clone();
     ui.global::<Logic>().on_stop_calibration_handler(move || {
         let mut calibration_flow = mutex_flow.lock().unwrap();
         calibration_flow.stop();
@@ -82,14 +82,14 @@ pub async fn start(app: App) {
         });
     });
 
-    let mutex_settings = Arc::clone(&orig_mutex_settings);
+    let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
         .on_set_option_accelerometer(move |checked: bool| {
             let mut settings = mutex_settings.lock().unwrap();
             settings.disable_accelerometer = !checked;
         });
 
-    let mutex_settings = Arc::clone(&orig_mutex_settings);
+    let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
         .on_set_option_gyroscope(move |checked: bool| {
             let mut settings = mutex_settings.lock().unwrap();
@@ -109,8 +109,8 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let mutex_calib = Arc::clone(&orig_mutex_calib);
-    let mutex_model = Arc::clone(&orig_mutex_model);
+    let mutex_calib = orig_mutex_calib.clone();
+    let mutex_model = orig_mutex_model.clone();
     ui.global::<Logic>().on_train_handler(move || {
         let calib = mutex_calib.lock().unwrap();
         let result = calib.train();
@@ -124,20 +124,20 @@ pub async fn start(app: App) {
         }
     });
 
-    let mutex_calib = Arc::clone(&orig_mutex_calib);
+    let mutex_calib = orig_mutex_calib.clone();
     ui.global::<Logic>().on_save_handler(move || {
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create("/tmp/saved_psylink_dataset.rs").unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
     });
 
-    let mutex_calib = Arc::clone(&orig_mutex_calib);
+    let mutex_calib = orig_mutex_calib.clone();
     ui.global::<Logic>().on_load_handler(move || {
         let mut calib = mutex_calib.lock().unwrap();
         calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });
 
-    let mutex_model = Arc::clone(&orig_mutex_model);
+    let mutex_model = orig_mutex_model.clone();
     let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_load_model_handler(move || {
         let mut model = mutex_model.lock().unwrap();
@@ -147,9 +147,9 @@ pub async fn start(app: App) {
         });
     });
 
-    let mutex_flow = Arc::clone(&orig_mutex_flow);
+    let mutex_flow = orig_mutex_flow.clone();
     let ui_weak = ui.as_weak();
-    let mutex_model = Arc::clone(&orig_mutex_model);
+    let mutex_model = orig_mutex_model.clone();
     ui.global::<Logic>().on_infer_start_handler(move || {
         let model = mutex_model.lock().unwrap();
         if (*model).is_some() {
@@ -161,7 +161,7 @@ pub async fn start(app: App) {
         }
     });
 
-    let mutex_flow = Arc::clone(&orig_mutex_flow);
+    let mutex_flow = orig_mutex_flow.clone();
     let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_infer_stop_handler(move || {
         let mut calibration_flow = mutex_flow.lock().unwrap();
@@ -173,9 +173,9 @@ pub async fn start(app: App) {
 
     // The thread for inference/prediction
     let mutex_quit = orig_mutex_quit.clone();
-    let mutex_flow = Arc::clone(&orig_mutex_flow);
-    let mutex_model = Arc::clone(&orig_mutex_model);
-    let mutex_calib = Arc::clone(&orig_mutex_calib);
+    let mutex_flow = orig_mutex_flow.clone();
+    let mutex_model = orig_mutex_model.clone();
+    let mutex_calib = orig_mutex_calib.clone();
     let mutex_commands = orig_mutex_commands.clone();
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
     let appclone = app.clone();
@@ -256,7 +256,7 @@ pub async fn start(app: App) {
     let mutex_flow = orig_mutex_flow.clone();
     let mutex_plotter = orig_mutex_plotter.clone();
     let mutex_commands = orig_mutex_commands.clone();
-    let mutex_settings = Arc::clone(&orig_mutex_settings);
+    let mutex_settings = orig_mutex_settings.clone();
     let mutex_state = orig_mutex_state.clone();
     let thread_network = tokio::spawn(async move {
         let mut device = loop {
@@ -409,7 +409,7 @@ pub async fn start(app: App) {
     // The thread for updating UI elements
     let ui_weak = ui.as_weak();
     let mutex_commands = orig_mutex_commands.clone();
-    let mutex_keystate = Arc::clone(&orig_mutex_keystate);
+    let mutex_keystate = orig_mutex_keystate.clone();
     let mutex_quit = orig_mutex_quit.clone();
     tokio::spawn(async move {
         loop {
