@@ -129,12 +129,14 @@ pub async fn start(app: App) {
         dbg!(&result);
         if let Ok(trained_model) = result {
             let mut model = mutex_model.lock().unwrap();
+            let model_log = format!("{:?}", &trained_model);
             *model = Some(trained_model);
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_model_trained(true);
             });
             if let Ok(mut state) = mutex_state.lock() {
                 state.log("Finished training AI calibration model.".into());
+                state.log(format!("Training result: {model_log}").into());
                 state.trained = true;
             }
         } else {
