@@ -270,6 +270,7 @@ pub async fn start(app: App) {
                 });
                 break device;
             }
+            // TODO: check for mutex_quit
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.25)).await;
         };
         device.find_characteristics().await;
