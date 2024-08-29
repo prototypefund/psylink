@@ -223,6 +223,7 @@ export component MainWindow inherits Window {
     in property <string> text-calibration-instruction: "";
     in property <string> text-calibration-timer: "";
     in property <string> text-predicted: "n/a";
+    in property <string> text-statusbar: "";
     in property <string> log: "No errors detected.";
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
@@ -238,63 +239,68 @@ export component MainWindow inherits Window {
     }
 
     focusscope := FocusScope {
-        TabWidget {
-            current-index: page;
-            Tab {
-                title: "Connection";
-                LoadingPage {
-                    statustext: text-connection-title;
-                    connected: connected;
-                    animation-tick: animation-tick;
+        VerticalBox {
+            TabWidget {
+                current-index: page;
+                Tab {
+                    title: "Connection";
+                    LoadingPage {
+                        statustext: text-connection-title;
+                        connected: connected;
+                        animation-tick: animation-tick;
+                    }
+                }
+                Tab {
+                    title: "Signals";
+                    GraphPage {
+                        calibrating: calibrating;
+                        connected: connected;
+                        statustext: text-graph-title;
+                        text-calibration-instruction: text-calibration-instruction;
+                        text-calibration-timer: text-calibration-timer;
+                        text-predicted: text-predicted;
+                        pressedkeys: pressedkeys;
+                        inferring: inferring;
+                        model-trained: model-trained;
+                        graph0: graph0;
+                    }
+                }
+                Tab {
+                    title: "Dev Tools";
+                    VerticalBox {
+                        alignment: start;
+                        Button {
+                            text: "Load test dataset";
+                            clicked => {
+                                Logic.load-handler();
+                            }
+                        }
+                        Button {
+                            text: "Load test model";
+                            clicked => {
+                                Logic.load-model-handler();
+                            }
+                        }
+                        Button {
+                            text: "Save calibration data";
+                            clicked => {
+                                Logic.save-handler();
+                            }
+                        }
+                        Text {
+                            text: "Error Log:";
+                        }
+                        TextEdit {
+                            width: parent.width;
+                            height: 200pt;
+                            text: log;
+                            read-only: true;
+                        }
+                    }
                 }
             }
-            Tab {
-                title: "Signals";
-                GraphPage {
-                    calibrating: calibrating;
-                    connected: connected;
-                    statustext: text-graph-title;
-                    text-calibration-instruction: text-calibration-instruction;
-                    text-calibration-timer: text-calibration-timer;
-                    text-predicted: text-predicted;
-                    pressedkeys: pressedkeys;
-                    inferring: inferring;
-                    model-trained: model-trained;
-                    graph0: graph0;
-                }
-            }
-            Tab {
-                title: "Dev Tools";
-                VerticalBox {
-                    alignment: start;
-                    Button {
-                        text: "Load test dataset";
-                        clicked => {
-                            Logic.load-handler();
-                        }
-                    }
-                    Button {
-                        text: "Load test model";
-                        clicked => {
-                            Logic.load-model-handler();
-                        }
-                    }
-                    Button {
-                        text: "Save calibration data";
-                        clicked => {
-                            Logic.save-handler();
-                        }
-                    }
-                    Text {
-                        text: "Error Log:";
-                    }
-                    TextEdit {
-                        width: parent.width;
-                        height: 200pt;
-                        text: log;
-                        read-only: true;
-                    }
-                }
+            Text {
+                text: text-statusbar;
             }
         }
         key-pressed(event) => {

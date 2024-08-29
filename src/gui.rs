@@ -255,6 +255,7 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     let thread_network = tokio::spawn(async move {
         let mut device = loop {
+            mutex_commands.lock().unwrap().update_statusbar = true;
             if let Ok(device) = bluetooth::find_peripheral(appclone, Some(mutex_quit.clone())).await
             {
                 let address = device.address.clone();
@@ -276,6 +277,7 @@ pub async fn start(app: App) {
         };
         device.find_characteristics().await;
         mutex_state.lock().unwrap().connected = true;
+        mutex_commands.lock().unwrap().update_statusbar = true;
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_connected(true);
@@ -393,6 +395,7 @@ pub async fn start(app: App) {
                             calib.add_datapoint(datapoint);
                         }
                     }
+                    mutex_commands.lock().unwrap().update_statusbar = true;
                 }
             }
 
@@ -415,8 +418,11 @@ pub async fn start(app: App) {
     let mutex_quit = orig_mutex_quit.clone();
     tokio::spawn(async move {
         loop {
-            let gui_commands = mutex_commands.lock().unwrap().clone();
+            let mut gui_commands = mutex_commands.lock().unwrap().clone();
             let keystate = mutex_keystate.lock().unwrap().clone();
+            let mutex_state = orig_mutex_state.clone();
+            let mutex_model = orig_mutex_model.clone();
+            let mutex_calib = orig_mutex_calib.clone();
 
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 // Update displayed text
@@ -429,6 +435,24 @@ pub async fn start(app: App) {
 
                 if let Some(msg) = gui_commands.change_predicted_key {
                     ui.set_text_predicted(msg.into());
+                }
+
+                if gui_commands.update_statusbar {
+                    let con = if mutex_state.lock().unwrap().connected {
+                        "Yes"
+                    } else {
+                        "No"
+                    };
+                    let cal = if mutex_model.lock().unwrap().is_some() {
+                        "Yes"
+                    } else {
+                        "No"
+                    };
+                    let sampl = mutex_calib.lock().unwrap().get_current_index();
+                    ui.set_text_statusbar(
+                        format!("Connected: {con}, Calibrated: {cal}, Samples: {sampl}").into(),
+                    );
+                    gui_commands.update_statusbar = false;
                 }
 
                 if let Ok(now) = SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -540,6 +564,7 @@ pub struct GuiCommands {
     pub change_calib_message: Option<String>,
     pub change_calib_timer: Option<String>,
     pub change_predicted_key: Option<String>,
+    pub update_statusbar: bool,
 }
 
 #[derive(Clone, Default)]
