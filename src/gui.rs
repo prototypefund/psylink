@@ -60,18 +60,17 @@ pub async fn start(app: App) {
     let mutex_flow = orig_mutex_flow.clone();
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_settings = orig_mutex_settings.clone();
-    ui.global::<Logic>()
-        .on_start_calibration_handler(move || {
-            let mut calibration_flow = mutex_flow.lock().unwrap();
-            let mut calib = mutex_calib.lock().unwrap();
-            let actions = mutex_settings.lock().unwrap().action_count;
-            calibration_flow.start(actions, 2);
-            calib.reset();
-            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                ui.set_calibrating(true);
-                ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());
-            });
+    ui.global::<Logic>().on_start_calibration_handler(move || {
+        let mut calibration_flow = mutex_flow.lock().unwrap();
+        let mut calib = mutex_calib.lock().unwrap();
+        let actions = mutex_settings.lock().unwrap().action_count;
+        calibration_flow.start(actions, 2);
+        calib.reset();
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            ui.set_calibrating(true);
+            ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());
         });
+    });
 
     let ui_weak = ui.as_weak();
     let mutex_flow = orig_mutex_flow.clone();
@@ -85,12 +84,13 @@ pub async fn start(app: App) {
     });
 
     let mutex_settings = orig_mutex_settings.clone();
-    ui.global::<Logic>()
-        .on_set_option_action_count(move |action_count_string: slint::SharedString| {
+    ui.global::<Logic>().on_set_option_action_count(
+        move |action_count_string: slint::SharedString| {
             let first_char = action_count_string.chars().next().unwrap();
             let action_count = first_char.to_string().parse::<usize>().unwrap();
             mutex_settings.lock().unwrap().action_count = action_count as usize;
-        });
+        },
+    );
 
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
@@ -107,8 +107,8 @@ pub async fn start(app: App) {
         });
 
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
-    ui.global::<Logic>()
-        .on_set_option_keypress_value(move |action_id: i32, chosen_text: slint::SharedString| {
+    ui.global::<Logic>().on_set_option_keypress_value(
+        move |action_id: i32, chosen_text: slint::SharedString| {
             let action = match chosen_text.as_str() {
                 "Nothing" => None,
                 "Space" => Some(' '),
@@ -116,7 +116,8 @@ pub async fn start(app: App) {
             };
             let mut fakeinput = mutex_fakeinput.lock().unwrap();
             fakeinput.set_action(action_id as usize, action);
-        });
+        },
+    );
 
     let ui_weak = ui.as_weak();
     let mutex_calib = orig_mutex_calib.clone();
@@ -142,7 +143,11 @@ pub async fn start(app: App) {
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create(path).unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
-        mutex_state.lock().unwrap().log.push(format!("Saved dataset to {path}."));
+        mutex_state
+            .lock()
+            .unwrap()
+            .log
+            .push(format!("Saved dataset to {path}."));
         mutex_commands.lock().unwrap().update_log = true;
     });
 
