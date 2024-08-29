@@ -75,6 +75,7 @@ impl CalibController {
     }
 
     pub fn train(&self) -> Result<DefaultModel, Box<dyn std::error::Error>> {
+        // TODO: parameterize the ModelConfig num_classes parameter
         //type MyBackend = Wgpu<f32, i32>;
 
         // Create a default Wgpu device
