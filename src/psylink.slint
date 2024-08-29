@@ -22,6 +22,7 @@ export global Logic {
     pure callback train-handler();
     pure callback load-dataset-handler();
     pure callback save-dataset-handler();
+    pure callback save-log-handler();
     pure callback load-model-handler();
     pure callback infer-start-handler();
     pure callback infer-stop-handler();
@@ -343,6 +344,12 @@ export component MainWindow inherits Window {
                                 text: "Load test AI calibration model";
                                 clicked => {
                                     Logic.load-model-handler();
+                                }
+                            }
+                            Button {
+                                text: "Save activity log";
+                                clicked => {
+                                    Logic.save-log-handler();
                                 }
                             }
                         }

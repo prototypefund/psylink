@@ -146,6 +146,19 @@ pub async fn start(app: App) {
         mutex_commands.lock().unwrap().update_log = true;
     });
 
+    let mutex_state = orig_mutex_state.clone();
+    let mutex_commands = orig_mutex_commands.clone();
+    ui.global::<Logic>().on_save_log_handler(move || {
+        let path = "/tmp/psylink_log.txt";
+        let mut output = std::fs::File::create(path).unwrap();
+        {
+            let mut state = mutex_state.lock().unwrap();
+            let _ = write!(output, "{}", state.log.join("\n"));
+            state.log.push(format!("Saved log to {path}."));
+        }
+        mutex_commands.lock().unwrap().update_log = true;
+    });
+
     let mutex_calib = orig_mutex_calib.clone();
     ui.global::<Logic>().on_load_dataset_handler(move || {
         let mut calib = mutex_calib.lock().unwrap();
