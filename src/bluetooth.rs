@@ -5,6 +5,8 @@ use btleplug::api::{
 use btleplug::platform::Manager;
 use std::error::Error;
 use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::io;
 use tokio::time;
 use uuid::Uuid;
 
@@ -123,7 +125,7 @@ pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
     }
     let sensor_uuid = Uuid::parse_str(firmware::SENSOR_CHARACTERISTICS_UUID).unwrap();
 
-    let psylink = find_peripheral(app).await?;
+    let psylink = find_peripheral(app, None).await?;
 
     let _ = psylink.peripheral.connect().await;
     let _ = psylink.peripheral.discover_services().await;
@@ -139,7 +141,7 @@ pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub async fn find_peripheral(app: App) -> Result<Device, Box<dyn Error>> {
+pub async fn find_peripheral(app: App, mutex_quit: Option<Arc<Mutex<bool>>>) -> Result<Device, Box<dyn Error>> {
     println!("Scanning Bluetooth for PsyLink device...");
 
     let manager = Manager::new().await?;
@@ -186,6 +188,12 @@ pub async fn find_peripheral(app: App) -> Result<Device, Box<dyn Error>> {
                         }
                     }
                 }
+            }
+        }
+        if let Some(mutex_quit) = &mutex_quit {
+            if *(mutex_quit.lock().unwrap()) {
+                println!("Quitting bluetooth::Device::find_peripheral");
+                return Err(Box::new(io::Error::new(io::ErrorKind::Other, "The bluetooth::Device::find_peripheral function received a quit command while scanning for peripherals")));
             }
         }
     }

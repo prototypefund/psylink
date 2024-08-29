@@ -260,7 +260,7 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     let thread_network = tokio::spawn(async move {
         let mut device = loop {
-            if let Ok(device) = bluetooth::find_peripheral(appclone).await {
+            if let Ok(device) = bluetooth::find_peripheral(appclone, Some(mutex_quit.clone())).await {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                     ui.set_text_connection_title(
@@ -270,8 +270,13 @@ pub async fn start(app: App) {
                 });
                 break device;
             }
-            // TODO: check for mutex_quit
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.25)).await;
+            if *(mutex_quit.lock().unwrap()) {
+                if appclone.verbose > 0 {
+                    println!("Quitting networking thread!");
+                }
+                return;
+            }
         };
         device.find_characteristics().await;
         mutex_state.lock().unwrap().connected = true;
