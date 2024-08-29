@@ -25,7 +25,7 @@ pub async fn start(app: App) {
     let orig_mutex_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
     let orig_mutex_settings = Arc::new(Mutex::new(GUISettings::default()));
     let orig_mutex_model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
-    let orig_mutex_commands = Arc::new(Mutex::new(GuiCommands::default()));
+    let orig_mutex_commands = Arc::new(Mutex::new(GUICommands::default()));
     let orig_mutex_state = Arc::new(Mutex::new(GUIState::default()));
     let orig_mutex_plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let orig_mutex_quit = Arc::new(Mutex::new(false));
@@ -617,7 +617,7 @@ impl Plotter {
 
 /// A thread messaging struct for deferring UI changes to a separate thread
 #[derive(Clone, Default)]
-pub struct GuiCommands {
+pub struct GUICommands {
     pub change_calib_message: Option<String>,
     pub change_calib_timer: Option<String>,
     pub change_predicted_key: Option<String>,
