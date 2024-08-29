@@ -19,7 +19,7 @@ impl InputState {
     pub fn new(verbose: bool) -> Self {
         let mut obj = Self::default();
         obj.verbose = verbose;
-        obj.actions = vec![None, Some('a')];
+        obj.actions = vec![None, Some('w'), Some('a'), Some('d'), Some('s')];
         obj
     }
 

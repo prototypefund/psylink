@@ -59,11 +59,13 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     let mutex_flow = orig_mutex_flow.clone();
     let mutex_calib = orig_mutex_calib.clone();
+    let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
-        .on_start_calibration_handler(move |actions: i32| {
+        .on_start_calibration_handler(move || {
             let mut calibration_flow = mutex_flow.lock().unwrap();
             let mut calib = mutex_calib.lock().unwrap();
-            calibration_flow.start(actions as usize, 2);
+            let actions = mutex_settings.lock().unwrap().action_count;
+            calibration_flow.start(actions, 2);
             calib.reset();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_calibrating(true);
@@ -81,6 +83,14 @@ pub async fn start(app: App) {
             ui.set_text_calibration_instruction(format!("No calibration in progress.").into());
         });
     });
+
+    let mutex_settings = orig_mutex_settings.clone();
+    ui.global::<Logic>()
+        .on_set_option_action_count(move |action_count_string: slint::SharedString| {
+            let first_char = action_count_string.chars().next().unwrap();
+            let action_count = first_char.to_string().parse::<usize>().unwrap();
+            mutex_settings.lock().unwrap().action_count = action_count as usize;
+        });
 
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
@@ -571,6 +581,7 @@ pub struct GuiCommands {
 pub struct GUISettings {
     pub disable_gyroscope: bool,
     pub disable_accelerometer: bool,
+    pub action_count: usize,
 }
 
 #[derive(Clone, Default)]

@@ -17,10 +17,7 @@ export global Logic {
     // 2. bool: was it a key press? (as opposed to a key release)
     pure callback key-handler(string, bool);
 
-    // Parameters for start-calibration:
-    // 1. int: how many actions to calibrate for?
-    pure callback start-calibration-handler(int);
-
+    pure callback start-calibration-handler();
     pure callback stop-calibration-handler();
     pure callback train-handler();
     pure callback load-handler();
@@ -30,6 +27,7 @@ export global Logic {
     pure callback infer-stop-handler();
     pure callback set-option-accelerometer(bool);
     pure callback set-option-gyroscope(bool);
+    pure callback set-option-action-count(string);
     pure callback set-option-keypress-value(int, string);
 }
 
@@ -108,6 +106,14 @@ component GraphPage {
                 VerticalBox {
                     alignment: end;
                     HorizontalBox {
+                        ComboBox {
+                            enabled: !calibrating;
+                            model: ["1 action", "2 actions", "3 actions", "4 actions"];
+                            current-value: "1 action";
+                            selected(value) => {
+                                Logic.set-option-action-count(value);
+                            }
+                        }
                         Button {
                             enabled: connected;
                             text: calibrating ? "Stop calibration" : "Start calibration";
@@ -115,7 +121,7 @@ component GraphPage {
                                 if calibrating {
                                     Logic.stop-calibration-handler();
                                 } else {
-                                    Logic.start-calibration-handler(1);
+                                    Logic.start-calibration-handler();
                                 }
                             }
                         }
@@ -170,6 +176,9 @@ component GraphPage {
                 Text {
                     text: "Action 3";
                 }
+                Text {
+                    text: "Action 4";
+                }
             }
             HorizontalLayout {
                 ComboBox {
@@ -191,6 +200,13 @@ component GraphPage {
                     current-value: "d";
                     selected(value) => {
                         Logic.set-option-keypress-value(3, value);
+                    }
+                }
+                ComboBox {
+                    model: ["Nothing", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                    current-value: "s";
+                    selected(value) => {
+                        Logic.set-option-keypress-value(4, value);
                     }
                 }
             }
