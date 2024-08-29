@@ -88,6 +88,7 @@ component GraphPage {
     in property <string> text-predicted;
     in property <bool> connected;
     in property <bool> calibrating;
+    in property <bool> sampled;
     in property <bool> inferring;
     in property <bool> model-trained;
     in property <image> graph0;
@@ -128,6 +129,7 @@ component GraphPage {
                         }
                         Button {
                             text: "Train AI";
+                            enabled: sampled;
                             clicked => {
                                 Logic.train-handler();
                             }
@@ -286,6 +288,7 @@ export component MainWindow inherits Window {
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
     in property <bool> connected: false;
+    in property <bool> sampled: false;
     in property <bool> model-trained: false;
     in property <string> pressedkeys: "";
     in property <int> page: 0;
@@ -313,6 +316,7 @@ export component MainWindow inherits Window {
                     GraphPage {
                         calibrating: calibrating;
                         connected: connected;
+                        sampled: sampled;
                         statustext: text-graph-title;
                         text-calibration-instruction: text-calibration-instruction;
                         text-calibration-timer: text-calibration-timer;

@@ -133,10 +133,10 @@ pub async fn start(app: App) {
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_model_trained(true);
             });
-            mutex_state
-                .lock()
-                .unwrap()
-                .log("Finished training AI calibration model.".into());
+            if let Ok(mut state) = mutex_state.lock() {
+                state.log("Finished training AI calibration model.".into());
+                state.trained = true;
+            }
         } else {
             mutex_state
                 .lock()
@@ -181,7 +181,10 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_load_model_handler(move || {
         let mut model = mutex_model.lock().unwrap();
-        mutex_state.lock().unwrap().update_statusbar = true;
+        if let Ok(mut state) = mutex_state.lock() {
+            state.update_statusbar = true;
+            state.trained = true;
+        }
         *model = Some(calibration::load_test_model());
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_model_trained(true);
@@ -489,6 +492,8 @@ pub async fn start(app: App) {
                     gui_commands.change_predicted_key = None;
                 }
 
+                ui.set_sampled(mutex_calib.lock().unwrap().has_datapoints());
+
                 if let Ok(mut state) = mutex_state.lock() {
                     if state.update_log {
                         ui.set_log(state.log2string().into());
@@ -631,6 +636,8 @@ pub struct GUISettings {
 #[derive(Clone, Default)]
 pub struct GUIState {
     pub connected: bool,
+    pub sampled: bool,
+    pub trained: bool,
     pub log_entries: Vec<String>,
     pub update_statusbar: bool,
     pub update_log: bool,

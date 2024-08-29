@@ -49,6 +49,10 @@ impl CalibController {
         self.dataset.datapoints.push(datapoint);
     }
 
+    pub fn has_datapoints(&self) -> bool {
+        return !self.dataset.datapoints.is_empty()
+    }
+
     pub fn reset(&mut self) {
         self.dataset.datapoints.clear();
         self.dataset.all_packets.clear();
