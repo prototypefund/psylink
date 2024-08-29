@@ -138,7 +138,7 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     let mutex_commands = orig_mutex_commands.clone();
     ui.global::<Logic>().on_save_dataset_handler(move || {
-        let path = "/tmp/saved_psylink_dataset.rs";
+        let path = "/tmp/psylink_dataset.rs";
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create(path).unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
