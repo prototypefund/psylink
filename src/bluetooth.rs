@@ -68,7 +68,7 @@ impl Device {
 }
 
 pub async fn scan(app: App) -> Result<(), Box<dyn Error>> {
-    println!("Scanning...");
+    println!("Scanning Bluetooth for PsyLink device...");
 
     let manager = Manager::new().await?;
     let adapter_list = manager.adapters().await?;
@@ -115,7 +115,7 @@ pub async fn scan(app: App) -> Result<(), Box<dyn Error>> {
 }
 
 pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
-    println!("Scanning...");
+    println!("Scanning Bluetooth for PsyLink device...");
     let manager = Manager::new().await?;
     let adapter_list = manager.adapters().await?;
     if adapter_list.is_empty() {
@@ -140,7 +140,7 @@ pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
 }
 
 pub async fn find_peripheral(app: App) -> Result<Device, Box<dyn Error>> {
-    println!("Scanning...");
+    println!("Scanning Bluetooth for PsyLink device...");
 
     let manager = Manager::new().await?;
     let adapter_list = manager.adapters().await?;
@@ -152,7 +152,7 @@ pub async fn find_peripheral(app: App) -> Result<Device, Box<dyn Error>> {
         for adapter in adapter_list.iter() {
             if app.verbose > 0 {
                 println!(
-                    "Trying bluetooth adapter {}...",
+                    "Trying Bluetooth adapter {}...",
                     adapter.adapter_info().await?
                 );
             }
