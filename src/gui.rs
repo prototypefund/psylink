@@ -43,7 +43,7 @@ pub async fn start(app: App) {
             let mut keystate = mutex_keystate.lock().unwrap();
             let key = key.to_string();
             if pressed {
-                if key == "1" || key == "2" {
+                if key == "1" || key == "2" || key == "3" {
                     let page = key.parse::<i32>().unwrap() - 1;
                     let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                         ui.set_page(page);

@@ -5,6 +5,7 @@ import {
     StandardListView,
     Switch,
     TabWidget,
+    TextEdit,
     VerticalBox
 } from "std-widgets.slint";
 
@@ -131,27 +132,6 @@ component GraphPage {
             HorizontalBox {
                 alignment: start;
                 Button {
-                    text: "Save calibration data";
-                    clicked => {
-                        Logic.save-handler();
-                    }
-                }
-                Button {
-                    text: "Load test dataset";
-                    clicked => {
-                        Logic.load-handler();
-                    }
-                }
-            }
-            HorizontalBox {
-                alignment: start;
-                Button {
-                    text: "Load test model";
-                    clicked => {
-                        Logic.load-model-handler();
-                    }
-                }
-                Button {
                     text: "Predict";
                     enabled: !inferring && model-trained;
                     clicked => {
@@ -243,6 +223,7 @@ export component MainWindow inherits Window {
     in property <string> text-calibration-instruction: "";
     in property <string> text-calibration-timer: "";
     in property <string> text-predicted: "n/a";
+    in property <string> log: "No errors detected.";
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
     in property <bool> connected: false;
@@ -280,6 +261,39 @@ export component MainWindow inherits Window {
                     inferring: inferring;
                     model-trained: model-trained;
                     graph0: graph0;
+                }
+            }
+            Tab {
+                title: "Dev Tools";
+                VerticalBox {
+                    alignment: start;
+                    Button {
+                        text: "Load test dataset";
+                        clicked => {
+                            Logic.load-handler();
+                        }
+                    }
+                    Button {
+                        text: "Load test model";
+                        clicked => {
+                            Logic.load-model-handler();
+                        }
+                    }
+                    Button {
+                        text: "Save calibration data";
+                        clicked => {
+                            Logic.save-handler();
+                        }
+                    }
+                    Text {
+                        text: "Error Log:";
+                    }
+                    TextEdit {
+                        width: parent.width;
+                        height: 200pt;
+                        text: log;
+                        read-only: true;
+                    }
                 }
             }
         }
