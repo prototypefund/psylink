@@ -471,13 +471,16 @@ pub async fn start(app: App) {
                 // Update displayed text
                 if let Some(msg) = gui_commands.change_calib_message {
                     ui.set_text_calibration_instruction(msg.into());
+                    gui_commands.change_calib_message = None;
                 }
                 if let Some(msg) = gui_commands.change_calib_timer {
                     ui.set_text_calibration_timer(msg.into());
+                    gui_commands.change_calib_timer = None;
                 }
 
                 if let Some(msg) = gui_commands.change_predicted_key {
                     ui.set_text_predicted(msg.into());
+                    gui_commands.change_predicted_key = None;
                 }
 
                 if gui_commands.update_log {
