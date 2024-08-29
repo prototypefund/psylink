@@ -135,14 +135,14 @@ pub async fn start(app: App) {
     });
 
     let mutex_calib = orig_mutex_calib.clone();
-    ui.global::<Logic>().on_save_handler(move || {
+    ui.global::<Logic>().on_save_dataset_handler(move || {
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create("/tmp/saved_psylink_dataset.rs").unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
     });
 
     let mutex_calib = orig_mutex_calib.clone();
-    ui.global::<Logic>().on_load_handler(move || {
+    ui.global::<Logic>().on_load_dataset_handler(move || {
         let mut calib = mutex_calib.lock().unwrap();
         calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });

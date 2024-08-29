@@ -20,8 +20,8 @@ export global Logic {
     pure callback start-calibration-handler();
     pure callback stop-calibration-handler();
     pure callback train-handler();
-    pure callback load-handler();
-    pure callback save-handler();
+    pure callback load-dataset-handler();
+    pure callback save-dataset-handler();
     pure callback load-model-handler();
     pure callback infer-start-handler();
     pure callback infer-stop-handler();
@@ -326,22 +326,24 @@ export component MainWindow inherits Window {
                     title: "Dev Tools";
                     VerticalBox {
                         alignment: start;
-                        Button {
-                            text: "Load test dataset";
-                            clicked => {
-                                Logic.load-handler();
+                        HorizontalBox {
+                            Button {
+                                text: "Load test dataset";
+                                clicked => {
+                                    Logic.load-dataset-handler();
+                                }
                             }
-                        }
-                        Button {
-                            text: "Load test model";
-                            clicked => {
-                                Logic.load-model-handler();
+                            Button {
+                                text: "Save dataset";
+                                clicked => {
+                                    Logic.save-dataset-handler();
+                                }
                             }
-                        }
-                        Button {
-                            text: "Save calibration data";
-                            clicked => {
-                                Logic.save-handler();
+                            Button {
+                                text: "Load test AI calibration model";
+                                clicked => {
+                                    Logic.load-model-handler();
+                                }
                             }
                         }
                         Text {
