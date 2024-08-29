@@ -252,10 +252,8 @@ pub async fn start(app: App) {
     let settings_clone = Arc::clone(&settings);
     let state_clone = state.clone();
     let ui_weak = ui.as_weak();
-    tokio::spawn(async move {
+    let thread_network = tokio::spawn(async move {
         let mut device = loop {
-            // TODO: shorter delay here?
-            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
             if let Ok(device) = bluetooth::find_peripheral(appclone).await {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
@@ -266,6 +264,7 @@ pub async fn start(app: App) {
                 });
                 break device;
             }
+            tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.25)).await;
         };
         device.find_characteristics().await;
         state_clone.lock().unwrap().connected = true;
@@ -394,6 +393,8 @@ pub async fn start(app: App) {
                 if appclone.verbose > 0 {
                     println!("Quitting networking thread!");
                 }
+                println!("Disconnecting...");
+                device.disconnect().await.expect("Failed to disconnect");
                 break;
             }
         }
@@ -452,8 +453,11 @@ pub async fn start(app: App) {
     ui.run().unwrap();
 
     // Signal threads to terminate themselves
-    let mut do_quit = do_quit.lock().unwrap();
-    *do_quit = true;
+    {
+        let mut do_quit = do_quit.lock().unwrap();
+        *do_quit = true;
+    }
+    let _ = tokio::join!(thread_network);
 }
 
 #[derive(Clone)]

@@ -60,6 +60,11 @@ impl Device {
             )))
         }
     }
+
+    pub async fn disconnect(&mut self) -> Result<(), Box<dyn Error>> {
+        self.peripheral.disconnect().await?;
+        Ok(())
+    }
 }
 
 pub async fn scan(app: App) -> Result<(), Box<dyn Error>> {
