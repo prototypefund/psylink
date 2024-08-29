@@ -133,15 +133,9 @@ pub async fn start(app: App) {
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_model_trained(true);
             });
-            if let Ok(mut state) = mutex_state.lock() {
-                state.log.push("Finished training AI calibration model.".into());
-                state.update_log = true;
-            }
+            mutex_state.lock().unwrap().log("Finished training AI calibration model.".into());
         } else {
-            if let Ok(mut state) = mutex_state.lock() {
-                state.log.push("Failed training AI calibration model.".into());
-                state.update_log = true;
-            }
+            mutex_state.lock().unwrap().log("Failed training AI calibration model.".into());
         }
     });
 
@@ -152,10 +146,7 @@ pub async fn start(app: App) {
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create(path).unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
-        if let Ok(mut state) = mutex_state.lock() {
-            state.log.push(format!("Saved dataset to {path}."));
-            state.update_log = true;
-        }
+        mutex_state.lock().unwrap().log(format!("Saved dataset to {path}."));
     });
 
     let mutex_state = orig_mutex_state.clone();
@@ -163,9 +154,8 @@ pub async fn start(app: App) {
         let path = "/tmp/psylink_log.txt";
         let mut output = std::fs::File::create(path).unwrap();
         if let Ok(mut state) = mutex_state.lock() {
-            let _ = write!(output, "{}", state.log.join("\n"));
-            state.log.push(format!("Saved log to {path}."));
-            state.update_log = true;
+            let _ = write!(output, "{}", state.log2string());
+            state.log(format!("Saved log to {path}."));
         }
     });
 
@@ -321,9 +311,8 @@ pub async fn start(app: App) {
             // Create a sub-scope to drop the MutexGuard afterwards
             let mut state = mutex_state.lock().unwrap();
             state.connected = true;
-            state.log.push(format!("Connected to PsyLink with MAC address {}.", device.address.clone()));
+            state.log(format!("Connected to PsyLink with MAC address {}.", device.address.clone()));
             state.update_statusbar = true;
-            state.update_log = true;
         }
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
@@ -489,7 +478,7 @@ pub async fn start(app: App) {
 
                 if let Ok(mut state) = mutex_state.lock() {
                     if state.update_log {
-                        ui.set_log(state.log.join("\n").into());
+                        ui.set_log(state.log2string().into());
                         state.update_log = false;
                     }
 
@@ -633,9 +622,20 @@ pub struct GUISettings {
 #[derive(Clone, Default)]
 pub struct GUIState {
     pub connected: bool,
-    pub log: Vec<String>,
+    pub log_entries: Vec<String>,
     pub update_statusbar: bool,
     pub update_log: bool,
+}
+
+impl GUIState {
+    pub fn log(&mut self, entry: String) {
+        self.log_entries.push(entry);
+        self.update_log = true;
+    }
+
+    pub fn log2string(&self) -> String {
+        self.log_entries.join("\n")
+    }
 }
 
 #[derive(Clone, Default)]
