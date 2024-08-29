@@ -133,9 +133,15 @@ pub async fn start(app: App) {
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_model_trained(true);
             });
-            mutex_state.lock().unwrap().log("Finished training AI calibration model.".into());
+            mutex_state
+                .lock()
+                .unwrap()
+                .log("Finished training AI calibration model.".into());
         } else {
-            mutex_state.lock().unwrap().log("Failed training AI calibration model.".into());
+            mutex_state
+                .lock()
+                .unwrap()
+                .log("Failed training AI calibration model.".into());
         }
     });
 
@@ -146,7 +152,10 @@ pub async fn start(app: App) {
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create(path).unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
-        mutex_state.lock().unwrap().log(format!("Saved dataset to {path}."));
+        mutex_state
+            .lock()
+            .unwrap()
+            .log(format!("Saved dataset to {path}."));
     });
 
     let mutex_state = orig_mutex_state.clone();
@@ -163,7 +172,8 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_load_dataset_handler(move || {
         mutex_state.lock().unwrap().update_statusbar = true;
-        mutex_calib.lock().unwrap().dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
+        mutex_calib.lock().unwrap().dataset =
+            PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });
 
     let ui_weak = ui.as_weak();
@@ -311,7 +321,10 @@ pub async fn start(app: App) {
             // Create a sub-scope to drop the MutexGuard afterwards
             let mut state = mutex_state.lock().unwrap();
             state.connected = true;
-            state.log(format!("Connected to PsyLink with MAC address {}.", device.address.clone()));
+            state.log(format!(
+                "Connected to PsyLink with MAC address {}.",
+                device.address.clone()
+            ));
             state.update_statusbar = true;
         }
 
@@ -483,11 +496,7 @@ pub async fn start(app: App) {
                     }
 
                     if state.update_statusbar {
-                        let con = if state.connected {
-                            "Yes"
-                        } else {
-                            "No"
-                        };
+                        let con = if state.connected { "Yes" } else { "No" };
                         let cal = if mutex_model.lock().unwrap().is_some() {
                             "Yes"
                         } else {
