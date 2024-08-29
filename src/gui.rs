@@ -309,8 +309,18 @@ pub async fn start(app: App) {
             }
         };
         device.find_characteristics().await;
-        mutex_state.lock().unwrap().connected = true;
-        mutex_commands.lock().unwrap().update_statusbar = true;
+        {
+            // Create a sub-scope to drop the MutexGuard afterwards
+            let mut state = mutex_state.lock().unwrap();
+            state.connected = true;
+            state.log.push(format!("Connected to PsyLink with MAC address {}.", device.address.clone()));
+        }
+        {
+            // Create a sub-scope to drop the MutexGuard afterwards
+            let mut commands = mutex_commands.lock().unwrap();
+            commands.update_statusbar = true;
+            commands.update_log = true;
+        }
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_connected(true);
