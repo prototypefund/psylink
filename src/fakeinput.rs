@@ -83,8 +83,7 @@ impl Default for AbstractionLayer {
         let tryenigo = Enigo::new(&Settings::default());
         if let Ok(enigo) = tryenigo {
             Self { enigo: Some(enigo) }
-        }
-        else {
+        } else {
             println!("Error: Could not initialize enigo library for simulation of key presses.");
             Self { enigo: None }
         }
@@ -94,7 +93,9 @@ impl Default for AbstractionLayer {
 impl AbstractionLayer {
     pub fn press(&mut self, key: char) {
         if self.enigo.is_some() {
-            self.enigo.as_mut().unwrap()
+            self.enigo
+                .as_mut()
+                .unwrap()
                 .key(Key::Unicode(key), Press)
                 .expect("Key press failed");
         }
@@ -102,7 +103,9 @@ impl AbstractionLayer {
 
     pub fn release(&mut self, key: char) {
         if self.enigo.is_some() {
-            self.enigo.as_mut().unwrap()
+            self.enigo
+                .as_mut()
+                .unwrap()
                 .key(Key::Unicode(key), Release)
                 .expect("Key press failed");
         }

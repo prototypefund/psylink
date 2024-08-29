@@ -4,9 +4,9 @@ use btleplug::api::{
 };
 use btleplug::platform::Manager;
 use std::error::Error;
-use std::time::Duration;
-use std::sync::{Arc, Mutex};
 use std::io;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tokio::time;
 use uuid::Uuid;
 
@@ -141,7 +141,10 @@ pub async fn stream(app: App) -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub async fn find_peripheral(app: App, mutex_quit: Option<Arc<Mutex<bool>>>) -> Result<Device, Box<dyn Error>> {
+pub async fn find_peripheral(
+    app: App,
+    mutex_quit: Option<Arc<Mutex<bool>>>,
+) -> Result<Device, Box<dyn Error>> {
     println!("Scanning Bluetooth for PsyLink device...");
 
     let manager = Manager::new().await?;

@@ -230,8 +230,7 @@ pub async fn start(app: App) {
                     ui.set_graph0(slint::Image::from_rgb8(rendered));
                 });
                 tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
-            }
-            else {
+            } else {
                 tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.2)).await;
             }
 
@@ -256,7 +255,8 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     let thread_network = tokio::spawn(async move {
         let mut device = loop {
-            if let Ok(device) = bluetooth::find_peripheral(appclone, Some(mutex_quit.clone())).await {
+            if let Ok(device) = bluetooth::find_peripheral(appclone, Some(mutex_quit.clone())).await
+            {
                 let address = device.address.clone();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                     ui.set_text_connection_title(
@@ -650,9 +650,7 @@ impl CalibrationFlow {
         let current_action = self.current_action.saturating_add(1);
         match self.state {
             CalibrationFlowState::Init => "Initializing...".into(),
-            CalibrationFlowState::Welcome => {
-                "Please follow the instructions.".into()
-            }
+            CalibrationFlowState::Welcome => "Please follow the instructions.".into(),
             CalibrationFlowState::NullActionWait => "⚠️ Prepare to rest your arm.".into(),
             CalibrationFlowState::NullAction => "⛔ Rest your arm now.".into(),
             CalibrationFlowState::GestureActionWait => {
