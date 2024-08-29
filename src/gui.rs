@@ -135,10 +135,15 @@ pub async fn start(app: App) {
     });
 
     let mutex_calib = orig_mutex_calib.clone();
+    let mutex_state = orig_mutex_state.clone();
+    let mutex_commands = orig_mutex_commands.clone();
     ui.global::<Logic>().on_save_dataset_handler(move || {
+        let path = "/tmp/saved_psylink_dataset.rs";
         let calib = mutex_calib.lock().unwrap();
-        let mut output = std::fs::File::create("/tmp/saved_psylink_dataset.rs").unwrap();
+        let mut output = std::fs::File::create(path).unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
+        mutex_state.lock().unwrap().log.push(format!("Saved dataset to {path}."));
+        mutex_commands.lock().unwrap().update_log = true;
     });
 
     let mutex_calib = orig_mutex_calib.clone();
@@ -447,6 +452,10 @@ pub async fn start(app: App) {
                     ui.set_text_predicted(msg.into());
                 }
 
+                if gui_commands.update_log {
+                    ui.set_log(mutex_state.lock().unwrap().log.join("\n").into());
+                }
+
                 if gui_commands.update_statusbar {
                     let con = if mutex_state.lock().unwrap().connected {
                         "Yes"
@@ -575,6 +584,7 @@ pub struct GuiCommands {
     pub change_calib_timer: Option<String>,
     pub change_predicted_key: Option<String>,
     pub update_statusbar: bool,
+    pub update_log: bool,
 }
 
 #[derive(Clone, Default)]
@@ -587,6 +597,7 @@ pub struct GUISettings {
 #[derive(Clone, Default)]
 pub struct GUIState {
     pub connected: bool,
+    pub log: Vec<String>,
 }
 
 #[derive(Clone, Default)]
