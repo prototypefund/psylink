@@ -75,27 +75,36 @@ impl InputState {
 }
 
 pub struct AbstractionLayer {
-    enigo: Enigo,
+    enigo: Option<Enigo>,
 }
 
 impl Default for AbstractionLayer {
     fn default() -> Self {
-        Self {
-            enigo: Enigo::new(&Settings::default()).unwrap(),
+        let tryenigo = Enigo::new(&Settings::default());
+        if let Ok(enigo) = tryenigo {
+            Self { enigo: Some(enigo) }
+        }
+        else {
+            println!("Error: Could not initialize enigo library for simulation of key presses.");
+            Self { enigo: None }
         }
     }
 }
 
 impl AbstractionLayer {
     pub fn press(&mut self, key: char) {
-        self.enigo
-            .key(Key::Unicode(key), Press)
-            .expect("Key press failed");
+        if self.enigo.is_some() {
+            self.enigo.as_mut().unwrap()
+                .key(Key::Unicode(key), Press)
+                .expect("Key press failed");
+        }
     }
 
     pub fn release(&mut self, key: char) {
-        self.enigo
-            .key(Key::Unicode(key), Release)
-            .expect("Key press failed");
+        if self.enigo.is_some() {
+            self.enigo.as_mut().unwrap()
+                .key(Key::Unicode(key), Release)
+                .expect("Key press failed");
+        }
     }
 }
