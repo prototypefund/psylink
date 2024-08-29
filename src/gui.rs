@@ -202,11 +202,7 @@ pub async fn start(app: App) {
                         }
                     }
                 } else {
-                    // Create a sub-scope to drop the MutexGuard afterwards
-                    {
-                        let mut calib_flow = mutex_flow.lock().unwrap();
-                        calib_flow.currently_inferring = false;
-                    }
+                    mutex_flow.lock().unwrap().currently_inferring = false;
                     println!("WARNING: attempted to infer before model is loaded");
                 }
             }
