@@ -17,26 +17,30 @@ const BG_COLOR: RGBColor = RGBColor(0x1c, 0x1c, 0x1c);
 pub async fn start(app: App) {
     let ui = MainWindow::new().unwrap();
 
-    let calib = Arc::new(Mutex::new(calibration::CalibController::default()));
-    let calibration_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
-    let settings = Arc::new(Mutex::new(GUISettings::default()));
-    let model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
-    let gui_commands = Arc::new(Mutex::new(GuiCommands::default()));
-    let state = Arc::new(Mutex::new(GUIState::default()));
-    let plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
-    let do_quit = Arc::new(Mutex::new(false));
-    let fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new(app.verbose > 0)));
+    // Naming convention:
+    // orig_mutex_ABC = original Arc<Mutex<...>> struct
+    // mutex_ABC = cloned mutex_ABC for bringing mutex_ABC into thread scope
+    // ABC = cloned_ABC.lock().unwrap() inside thread, when ABC needs to be read/written
+    let orig_mutex_calib = Arc::new(Mutex::new(calibration::CalibController::default()));
+    let orig_mutex_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
+    let orig_mutex_settings = Arc::new(Mutex::new(GUISettings::default()));
+    let orig_mutex_model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
+    let orig_mutex_commands = Arc::new(Mutex::new(GuiCommands::default()));
+    let orig_mutex_state = Arc::new(Mutex::new(GUIState::default()));
+    let orig_mutex_plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
+    let orig_mutex_quit = Arc::new(Mutex::new(false));
+    let orig_mutex_fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new(app.verbose > 0)));
 
     // At the moment, we store the set of keys that are currently being pressed
     // for the purpose of matching them with PsyLink signals in an upcoming feature.
     // If this feature is never added, we can safely throw out keystate.
-    let keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
-    let keystate_clone_writer = Arc::clone(&keystate);
+    let orig_mutex_keystate = Arc::new(Mutex::new(HashSet::<String>::new()));
 
     let ui_weak = ui.as_weak();
+    let mutex_keystate = Arc::clone(&orig_mutex_keystate);
     ui.global::<Logic>()
         .on_key_handler(move |key: slint::SharedString, pressed: bool| {
-            let mut keystate = keystate_clone_writer.lock().unwrap();
+            let mut keystate = mutex_keystate.lock().unwrap();
             let key = key.to_string();
             if pressed {
                 if key == "1" || key == "2" {
@@ -53,12 +57,12 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let calibration_flow_clone = Arc::clone(&calibration_flow);
-    let calib_clone = Arc::clone(&calib);
+    let mutex_flow = Arc::clone(&orig_mutex_flow);
+    let mutex_calib = Arc::clone(&orig_mutex_calib);
     ui.global::<Logic>()
         .on_start_calibration_handler(move |actions: i32| {
-            let mut calibration_flow = calibration_flow_clone.lock().unwrap();
-            let mut calib = calib_clone.lock().unwrap();
+            let mut calibration_flow = mutex_flow.lock().unwrap();
+            let mut calib = mutex_calib.lock().unwrap();
             calibration_flow.start(actions as usize, 2);
             calib.reset();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
@@ -68,9 +72,9 @@ pub async fn start(app: App) {
         });
 
     let ui_weak = ui.as_weak();
-    let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let mutex_flow = Arc::clone(&orig_mutex_flow);
     ui.global::<Logic>().on_stop_calibration_handler(move || {
-        let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+        let mut calibration_flow = mutex_flow.lock().unwrap();
         calibration_flow.stop();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(false);
@@ -78,21 +82,21 @@ pub async fn start(app: App) {
         });
     });
 
-    let settings_clone = Arc::clone(&settings);
+    let mutex_settings = Arc::clone(&orig_mutex_settings);
     ui.global::<Logic>()
         .on_set_option_accelerometer(move |checked: bool| {
-            let mut settings = settings_clone.lock().unwrap();
+            let mut settings = mutex_settings.lock().unwrap();
             settings.disable_accelerometer = !checked;
         });
 
-    let settings_clone = Arc::clone(&settings);
+    let mutex_settings = Arc::clone(&orig_mutex_settings);
     ui.global::<Logic>()
         .on_set_option_gyroscope(move |checked: bool| {
-            let mut settings = settings_clone.lock().unwrap();
+            let mut settings = mutex_settings.lock().unwrap();
             settings.disable_gyroscope = !checked;
         });
 
-    let fakeinput_clone = fakeinput.clone();
+    let mutex_fakeinput = orig_mutex_fakeinput.clone();
     ui.global::<Logic>()
         .on_set_option_keypress_value(move |chosen_text: slint::SharedString| {
             let action = match chosen_text.as_str() {
@@ -100,19 +104,19 @@ pub async fn start(app: App) {
                 "Space" => Some(' '),
                 _ => Some(chosen_text.chars().next().unwrap()),
             };
-            let mut fakeinput = fakeinput_clone.lock().unwrap();
+            let mut fakeinput = mutex_fakeinput.lock().unwrap();
             fakeinput.set_action(1, action);
         });
 
-    let calib_clone = Arc::clone(&calib);
-    let model_clone = Arc::clone(&model);
     let ui_weak = ui.as_weak();
+    let mutex_calib = Arc::clone(&orig_mutex_calib);
+    let mutex_model = Arc::clone(&orig_mutex_model);
     ui.global::<Logic>().on_train_handler(move || {
-        let calib = calib_clone.lock().unwrap();
+        let calib = mutex_calib.lock().unwrap();
         let result = calib.train();
         dbg!(&result);
         if let Ok(trained_model) = result {
-            let mut model = model_clone.lock().unwrap();
+            let mut model = mutex_model.lock().unwrap();
             *model = Some(trained_model);
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_model_trained(true);
@@ -120,36 +124,36 @@ pub async fn start(app: App) {
         }
     });
 
-    let calib_clone = Arc::clone(&calib);
+    let mutex_calib = Arc::clone(&orig_mutex_calib);
     ui.global::<Logic>().on_save_handler(move || {
-        let calib = calib_clone.lock().unwrap();
+        let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create("/tmp/saved_psylink_dataset.rs").unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
     });
 
-    let calib_clone = Arc::clone(&calib);
+    let mutex_calib = Arc::clone(&orig_mutex_calib);
     ui.global::<Logic>().on_load_handler(move || {
-        let mut calib = calib_clone.lock().unwrap();
+        let mut calib = mutex_calib.lock().unwrap();
         calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });
 
-    let model_clone = Arc::clone(&model);
+    let mutex_model = Arc::clone(&orig_mutex_model);
     let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_load_model_handler(move || {
-        let mut model = model_clone.lock().unwrap();
+        let mut model = mutex_model.lock().unwrap();
         *model = Some(calibration::load_test_model());
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_model_trained(true);
         });
     });
 
-    let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let mutex_flow = Arc::clone(&orig_mutex_flow);
     let ui_weak = ui.as_weak();
-    let model_clone = Arc::clone(&model);
+    let mutex_model = Arc::clone(&orig_mutex_model);
     ui.global::<Logic>().on_infer_start_handler(move || {
-        let model = model_clone.lock().unwrap();
+        let model = mutex_model.lock().unwrap();
         if (*model).is_some() {
-            let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+            let mut calibration_flow = mutex_flow.lock().unwrap();
             calibration_flow.currently_inferring = true;
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_inferring(true);
@@ -157,10 +161,10 @@ pub async fn start(app: App) {
         }
     });
 
-    let calibration_flow_clone = Arc::clone(&calibration_flow);
+    let mutex_flow = Arc::clone(&orig_mutex_flow);
     let ui_weak = ui.as_weak();
     ui.global::<Logic>().on_infer_stop_handler(move || {
-        let mut calibration_flow = calibration_flow_clone.lock().unwrap();
+        let mut calibration_flow = mutex_flow.lock().unwrap();
         calibration_flow.currently_inferring = false;
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_inferring(false);
@@ -168,46 +172,46 @@ pub async fn start(app: App) {
     });
 
     // The thread for inference/prediction
-    let do_quit_clone = do_quit.clone();
-    let calibration_flow_clone = Arc::clone(&calibration_flow);
-    let model_clone = Arc::clone(&model);
-    let calib_clone = Arc::clone(&calib);
-    let gui_commands_clone = gui_commands.clone();
-    let fakeinput_clone = fakeinput.clone();
+    let mutex_quit = orig_mutex_quit.clone();
+    let mutex_flow = Arc::clone(&orig_mutex_flow);
+    let mutex_model = Arc::clone(&orig_mutex_model);
+    let mutex_calib = Arc::clone(&orig_mutex_calib);
+    let mutex_commands = orig_mutex_commands.clone();
+    let mutex_fakeinput = orig_mutex_fakeinput.clone();
     let appclone = app.clone();
     tokio::spawn(async move {
         loop {
             let currently_inferring: bool = {
                 // Create a sub-scope to drop the MutexGuard afterwards
-                let calib_flow = calibration_flow_clone.lock().unwrap();
+                let calib_flow = mutex_flow.lock().unwrap();
                 calib_flow.currently_inferring
             };
             if currently_inferring {
-                let model = model_clone.lock().unwrap();
-                let calib = calib_clone.lock().unwrap();
+                let model = mutex_model.lock().unwrap();
+                let calib = mutex_calib.lock().unwrap();
                 if (*model).is_some() {
                     let inferred = calib.infer_latest((*model).clone().unwrap());
                     if let Some(key) = inferred {
                         {
-                            let mut gui_commands = gui_commands_clone.lock().unwrap();
+                            let mut gui_commands = mutex_commands.lock().unwrap();
                             gui_commands.change_predicted_key = Some(key.to_string());
                         }
                         {
-                            let mut fakeinput = fakeinput_clone.lock().unwrap();
+                            let mut fakeinput = mutex_fakeinput.lock().unwrap();
                             fakeinput.set_predicted(key as u8);
                         }
                     }
                 } else {
                     // Create a sub-scope to drop the MutexGuard afterwards
                     {
-                        let mut calib_flow = calibration_flow_clone.lock().unwrap();
+                        let mut calib_flow = mutex_flow.lock().unwrap();
                         calib_flow.currently_inferring = false;
                     }
                     println!("WARNING: attempted to infer before model is loaded");
                 }
             }
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
-            if *(do_quit_clone.lock().unwrap()) {
+            if *(mutex_quit.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting inference thread!");
                 }
@@ -217,14 +221,14 @@ pub async fn start(app: App) {
     });
 
     // The thread for plotting the signals
-    let do_quit_clone = do_quit.clone();
-    let plotter_clone = plotter.clone();
-    let state_clone = state.clone();
     let ui_weak = ui.as_weak();
+    let mutex_quit = orig_mutex_quit.clone();
+    let mutex_plotter = orig_mutex_plotter.clone();
+    let mutex_state = orig_mutex_state.clone();
     tokio::spawn(async move {
         loop {
-            if state_clone.lock().unwrap().connected {
-                let plotter = plotter_clone.lock().unwrap().clone();
+            if mutex_state.lock().unwrap().connected {
+                let plotter = mutex_plotter.lock().unwrap().clone();
                 let rendered = plotter.render();
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                     ui.set_graph0(slint::Image::from_rgb8(rendered));
@@ -235,7 +239,7 @@ pub async fn start(app: App) {
                 tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.2)).await;
             }
 
-            if *(do_quit_clone.lock().unwrap()) {
+            if *(mutex_quit.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting plotter thread!");
                 }
@@ -245,13 +249,15 @@ pub async fn start(app: App) {
     });
 
     // The thread for receiving and storing packages
-    let do_quit_clone = do_quit.clone();
-    let appclone = app.clone();
-    let plotter_clone = plotter.clone();
-    let gui_commands_clone = gui_commands.clone();
-    let settings_clone = Arc::clone(&settings);
-    let state_clone = state.clone();
     let ui_weak = ui.as_weak();
+    let appclone = app.clone();
+    let mutex_quit = orig_mutex_quit.clone();
+    let mutex_calib = orig_mutex_calib.clone();
+    let mutex_flow = orig_mutex_flow.clone();
+    let mutex_plotter = orig_mutex_plotter.clone();
+    let mutex_commands = orig_mutex_commands.clone();
+    let mutex_settings = Arc::clone(&orig_mutex_settings);
+    let mutex_state = orig_mutex_state.clone();
     let thread_network = tokio::spawn(async move {
         let mut device = loop {
             if let Ok(device) = bluetooth::find_peripheral(appclone).await {
@@ -267,7 +273,7 @@ pub async fn start(app: App) {
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.25)).await;
         };
         device.find_characteristics().await;
-        state_clone.lock().unwrap().connected = true;
+        mutex_state.lock().unwrap().connected = true;
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_connected(true);
@@ -295,7 +301,7 @@ pub async fn start(app: App) {
 
             // Decode packet
             let (enable_accelerometer, enable_gyroscope) = {
-                let settings = settings_clone.lock().unwrap();
+                let settings = mutex_settings.lock().unwrap();
                 (!settings.disable_accelerometer, !settings.disable_gyroscope)
             };
             let packet = decoder.decode_packet(bytearray, enable_accelerometer, enable_gyroscope);
@@ -328,20 +334,20 @@ pub async fn start(app: App) {
 
             // Add packet to plotter
             {
-                let mut plotter = plotter_clone.lock().unwrap();
+                let mut plotter = mutex_plotter.lock().unwrap();
                 plotter.insert(&packet.samples);
             }
 
             // Create a sub-scope because we must drop the MutexGuard before await
             {
-                let mut calib_flow = calibration_flow.lock().unwrap();
-                let mut calib = calib.lock().unwrap();
+                let mut calib_flow = mutex_flow.lock().unwrap();
+                let mut calib = mutex_calib.lock().unwrap();
                 if calib_flow.currently_calibrating || calib_flow.currently_inferring {
                     if calib_flow.currently_calibrating {
                         // Update calibration flow state
                         let state_changed = calib_flow.tick(dt);
                         {
-                            let mut gui_commands = gui_commands_clone.lock().unwrap();
+                            let mut gui_commands = mutex_commands.lock().unwrap();
                             if state_changed {
                                 gui_commands.change_calib_message =
                                     Some(calib_flow.generate_message());
@@ -389,7 +395,7 @@ pub async fn start(app: App) {
             }
 
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.001)).await;
-            if *(do_quit_clone.lock().unwrap()) {
+            if *(mutex_quit.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting networking thread!");
                 }
@@ -401,14 +407,14 @@ pub async fn start(app: App) {
     });
 
     // The thread for updating UI elements
-    let gui_commands_clone = gui_commands.clone();
-    let keystate_clone = Arc::clone(&keystate);
     let ui_weak = ui.as_weak();
-    let do_quit_clone = do_quit.clone();
+    let mutex_commands = orig_mutex_commands.clone();
+    let mutex_keystate = Arc::clone(&orig_mutex_keystate);
+    let mutex_quit = orig_mutex_quit.clone();
     tokio::spawn(async move {
         loop {
-            let gui_commands = gui_commands_clone.lock().unwrap().clone();
-            let keystate = keystate_clone.lock().unwrap().clone();
+            let gui_commands = mutex_commands.lock().unwrap().clone();
+            let keystate = mutex_keystate.lock().unwrap().clone();
 
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 // Update displayed text
@@ -441,7 +447,7 @@ pub async fn start(app: App) {
             });
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.005)).await;
 
-            if *(do_quit_clone.lock().unwrap()) {
+            if *(mutex_quit.lock().unwrap()) {
                 if appclone.verbose > 0 {
                     println!("Quitting UI update thread!");
                 }
@@ -454,7 +460,7 @@ pub async fn start(app: App) {
 
     // Signal threads to terminate themselves
     {
-        let mut do_quit = do_quit.lock().unwrap();
+        let mut do_quit = orig_mutex_quit.lock().unwrap();
         *do_quit = true;
     }
     let _ = tokio::join!(thread_network);
