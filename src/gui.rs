@@ -122,6 +122,7 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_model = orig_mutex_model.clone();
+    let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_train_handler(move || {
         let calib = mutex_calib.lock().unwrap();
         let result = calib.train();
@@ -132,48 +133,55 @@ pub async fn start(app: App) {
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_model_trained(true);
             });
+            if let Ok(mut state) = mutex_state.lock() {
+                state.log.push("Finished training AI calibration model.".into());
+                state.update_log = true;
+            }
+        } else {
+            if let Ok(mut state) = mutex_state.lock() {
+                state.log.push("Failed training AI calibration model.".into());
+                state.update_log = true;
+            }
         }
     });
 
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_state = orig_mutex_state.clone();
-    let mutex_commands = orig_mutex_commands.clone();
     ui.global::<Logic>().on_save_dataset_handler(move || {
         let path = "/tmp/psylink_dataset.rs";
         let calib = mutex_calib.lock().unwrap();
         let mut output = std::fs::File::create(path).unwrap();
         let _ = write!(output, "{}", calib.dataset.to_string());
-        mutex_state
-            .lock()
-            .unwrap()
-            .log
-            .push(format!("Saved dataset to {path}."));
-        mutex_commands.lock().unwrap().update_log = true;
+        if let Ok(mut state) = mutex_state.lock() {
+            state.log.push(format!("Saved dataset to {path}."));
+            state.update_log = true;
+        }
     });
 
     let mutex_state = orig_mutex_state.clone();
-    let mutex_commands = orig_mutex_commands.clone();
     ui.global::<Logic>().on_save_log_handler(move || {
         let path = "/tmp/psylink_log.txt";
         let mut output = std::fs::File::create(path).unwrap();
-        {
-            let mut state = mutex_state.lock().unwrap();
+        if let Ok(mut state) = mutex_state.lock() {
             let _ = write!(output, "{}", state.log.join("\n"));
             state.log.push(format!("Saved log to {path}."));
+            state.update_log = true;
         }
-        mutex_commands.lock().unwrap().update_log = true;
     });
 
     let mutex_calib = orig_mutex_calib.clone();
+    let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_load_dataset_handler(move || {
-        let mut calib = mutex_calib.lock().unwrap();
-        calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
+        mutex_state.lock().unwrap().update_statusbar = true;
+        mutex_calib.lock().unwrap().dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });
 
-    let mutex_model = orig_mutex_model.clone();
     let ui_weak = ui.as_weak();
+    let mutex_model = orig_mutex_model.clone();
+    let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_load_model_handler(move || {
         let mut model = mutex_model.lock().unwrap();
+        mutex_state.lock().unwrap().update_statusbar = true;
         *model = Some(calibration::load_test_model());
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_model_trained(true);
@@ -288,7 +296,7 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     let thread_network = tokio::spawn(async move {
         let mut device = loop {
-            mutex_commands.lock().unwrap().update_statusbar = true;
+            mutex_state.lock().unwrap().update_statusbar = true;
             if let Ok(device) = bluetooth::find_peripheral(appclone, Some(mutex_quit.clone())).await
             {
                 let address = device.address.clone();
@@ -314,12 +322,8 @@ pub async fn start(app: App) {
             let mut state = mutex_state.lock().unwrap();
             state.connected = true;
             state.log.push(format!("Connected to PsyLink with MAC address {}.", device.address.clone()));
-        }
-        {
-            // Create a sub-scope to drop the MutexGuard afterwards
-            let mut commands = mutex_commands.lock().unwrap();
-            commands.update_statusbar = true;
-            commands.update_log = true;
+            state.update_statusbar = true;
+            state.update_log = true;
         }
 
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
@@ -438,7 +442,7 @@ pub async fn start(app: App) {
                             calib.add_datapoint(datapoint);
                         }
                     }
-                    mutex_commands.lock().unwrap().update_statusbar = true;
+                    mutex_state.lock().unwrap().update_statusbar = true;
                 }
             }
 
@@ -483,26 +487,29 @@ pub async fn start(app: App) {
                     gui_commands.change_predicted_key = None;
                 }
 
-                if gui_commands.update_log {
-                    ui.set_log(mutex_state.lock().unwrap().log.join("\n").into());
-                }
+                if let Ok(mut state) = mutex_state.lock() {
+                    if state.update_log {
+                        ui.set_log(state.log.join("\n").into());
+                        state.update_log = false;
+                    }
 
-                if gui_commands.update_statusbar {
-                    let con = if mutex_state.lock().unwrap().connected {
-                        "Yes"
-                    } else {
-                        "No"
-                    };
-                    let cal = if mutex_model.lock().unwrap().is_some() {
-                        "Yes"
-                    } else {
-                        "No"
-                    };
-                    let sampl = mutex_calib.lock().unwrap().get_current_index();
-                    ui.set_text_statusbar(
-                        format!("Connected: {con}, Calibrated: {cal}, Samples: {sampl}").into(),
-                    );
-                    gui_commands.update_statusbar = false;
+                    if state.update_statusbar {
+                        let con = if state.connected {
+                            "Yes"
+                        } else {
+                            "No"
+                        };
+                        let cal = if mutex_model.lock().unwrap().is_some() {
+                            "Yes"
+                        } else {
+                            "No"
+                        };
+                        let sampl = mutex_calib.lock().unwrap().get_current_index();
+                        ui.set_text_statusbar(
+                            format!("Connected: {con}, Calibrated: {cal}, Samples: {sampl}").into(),
+                        );
+                        state.update_statusbar = false;
+                    }
                 }
 
                 if let Ok(now) = SystemTime::now().duration_since(UNIX_EPOCH) {
@@ -614,8 +621,6 @@ pub struct GuiCommands {
     pub change_calib_message: Option<String>,
     pub change_calib_timer: Option<String>,
     pub change_predicted_key: Option<String>,
-    pub update_statusbar: bool,
-    pub update_log: bool,
 }
 
 #[derive(Clone, Default)]
@@ -629,6 +634,8 @@ pub struct GUISettings {
 pub struct GUIState {
     pub connected: bool,
     pub log: Vec<String>,
+    pub update_statusbar: bool,
+    pub update_log: bool,
 }
 
 #[derive(Clone, Default)]
