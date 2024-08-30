@@ -29,7 +29,7 @@ pub async fn start(app: App) {
     // ABC = cloned_ABC.lock().unwrap() inside thread, when ABC needs to be read/written
     let orig_mutex_calib = Arc::new(Mutex::new(calibration::CalibController::default()));
     let orig_mutex_flow = Arc::new(Mutex::new(CalibrationFlow::default()));
-    let orig_mutex_settings = Arc::new(Mutex::new(GUISettings::default()));
+    let orig_mutex_settings = Arc::new(Mutex::new(GUISettings::new()));
     let orig_mutex_model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
     let orig_mutex_commands = Arc::new(Mutex::new(GUICommands::default()));
     let orig_mutex_state = Arc::new(Mutex::new(state));
@@ -666,6 +666,14 @@ pub struct GUISettings {
     pub disable_gyroscope: bool,
     pub disable_accelerometer: bool,
     pub action_count: usize,
+}
+
+impl GUISettings {
+    pub fn new() -> Self {
+        let mut result = Self::default();
+        result.action_count = 1;
+        result
+    }
 }
 
 #[derive(Clone, Default)]
