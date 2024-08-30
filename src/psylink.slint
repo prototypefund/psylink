@@ -2,6 +2,7 @@ import {
     Button,
     ComboBox,
     HorizontalBox,
+    LineEdit,
     StandardListView,
     Switch,
     TabWidget,
@@ -30,6 +31,8 @@ export global Logic {
     pure callback set-option-gyroscope(bool);
     pure callback set-option-action-count(string);
     pure callback set-option-keypress-value(int, string);
+    pure callback set-option-epochs(string);
+    pure callback set-option-max-datapoints(string);
 }
 
 component LoadingPage {
@@ -285,6 +288,8 @@ export component MainWindow inherits Window {
     in property <string> text-predicted: "n/a";
     in property <string> text-statusbar: "";
     in property <string> log: "";
+    in property <string> train-max-datapoints: "";
+    in property <string> train-epochs: "";
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
     in property <bool> connected: false;
@@ -332,6 +337,7 @@ export component MainWindow inherits Window {
                     VerticalBox {
                         alignment: start;
                         HorizontalBox {
+                            alignment: start;
                             Button {
                                 text: "Load test dataset";
                                 clicked => {
@@ -354,6 +360,27 @@ export component MainWindow inherits Window {
                                 text: "Save activity log";
                                 clicked => {
                                     Logic.save-log-handler();
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            alignment: start;
+                            Text {
+                                text: "Training Datapoint Limit:";
+                            }
+                            LineEdit {
+                                text: train-max-datapoints;
+                                edited(value) => {
+                                    Logic.set-option-max-datapoints(value);
+                                }
+                            }
+                            Text {
+                                text: "Training Epochs:";
+                            }
+                            LineEdit {
+                                text: train-epochs;
+                                edited(value) => {
+                                    Logic.set-option-epochs(value);
                                 }
                             }
                         }

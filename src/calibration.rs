@@ -24,7 +24,8 @@ use burn::train::{
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 
-const MAX_TRAINED_DATAPOINTS: usize = 4000;
+pub const DEFAULT_MAX_DATAPOINTS: usize = 4000;
+pub const DEFAULT_EPOCHS: usize = 6;
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
 pub const TEST_DATASET: ([(usize, u8); 12450], [[u8; 14]; 20475]) =
@@ -74,7 +75,7 @@ impl CalibController {
         Some(infer_item(model, item))
     }
 
-    pub fn train(&self) -> Result<DefaultModel, Box<dyn std::error::Error>> {
+    pub fn train(&self, epochs: usize, max_datapoints: usize) -> Result<DefaultModel, Box<dyn std::error::Error>> {
         // TODO: parameterize the ModelConfig num_classes parameter
         //type MyBackend = Wgpu<f32, i32>;
 
@@ -84,10 +85,14 @@ impl CalibController {
         // All the training artifacts will be saved in this directory
         let artifact_dir = "/tmp/psylink";
 
+        let mut training_config = TrainingConfig::new(ModelConfig::new(), AdamConfig::new());
+        training_config.num_epochs = epochs;
+
         // Train the model
         self.train2::<DefaultBackend>(
             artifact_dir,
-            TrainingConfig::new(ModelConfig::new(), AdamConfig::new()),
+            training_config,
+            max_datapoints,
             device.clone(),
         )
     }
@@ -96,6 +101,7 @@ impl CalibController {
         &self,
         artifact_dir: &str,
         config: TrainingConfig,
+        max_datapoints: usize,
         device: B::Device,
     ) -> Result<Model<B>, Box<dyn std::error::Error>> {
         Self::create_artifact_dir(artifact_dir);
@@ -108,7 +114,7 @@ impl CalibController {
         println!("Dataset length: {}", self.dataset.len());
 
         // Build dataset
-        let (dataset_train, dataset_valid) = self.dataset.split_train_validate();
+        let (dataset_train, dataset_valid) = self.dataset.split_train_validate(max_datapoints);
 
         // Build batchers
         let batcher_train = TrainingBatcher::<B>::new(device.clone());
@@ -324,11 +330,11 @@ impl PsyLinkDataset {
         })
     }
 
-    fn split_train_validate(&self) -> (Self, Self) {
+    fn split_train_validate(&self, max_datapoints: usize) -> (Self, Self) {
         let mut datapoints = self.datapoints.clone();
         let mut rng = thread_rng();
         datapoints.shuffle(&mut rng);
-        datapoints.truncate(MAX_TRAINED_DATAPOINTS);
+        datapoints.truncate(max_datapoints);
 
         let validation_split_index = (datapoints.len() * VALIDATION_SET_PERCENTAGE) / 100;
         let training_datapoints = if validation_split_index <= datapoints.len() {
@@ -469,7 +475,7 @@ pub fn infer_item(model: Model<DefaultBackend>, item: TrainingSample) -> i32 {
 pub fn train() -> Result<(), Box<dyn std::error::Error>> {
     let mut calib = CalibController::default();
     calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
-    calib.train()?;
+    calib.train(DEFAULT_EPOCHS, DEFAULT_MAX_DATAPOINTS)?;
 
     Ok(())
 }

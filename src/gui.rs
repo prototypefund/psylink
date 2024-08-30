@@ -15,7 +15,11 @@ const TOTAL_CHANNELS: usize = 14;
 const BG_COLOR: RGBColor = RGBColor(0x1c, 0x1c, 0x1c);
 
 pub async fn start(app: App) {
+    let state = GUIState::new();
+
     let ui = MainWindow::new().unwrap();
+    ui.set_train_max_datapoints(slint::SharedString::from(state.train_max_datapoints.to_string()));
+    ui.set_train_epochs(slint::SharedString::from(state.train_epochs.to_string()));
 
     // Naming convention:
     // orig_mutex_ABC = original Arc<Mutex<...>> struct
@@ -26,7 +30,7 @@ pub async fn start(app: App) {
     let orig_mutex_settings = Arc::new(Mutex::new(GUISettings::default()));
     let orig_mutex_model = Arc::new(Mutex::new(None::<calibration::DefaultModel>));
     let orig_mutex_commands = Arc::new(Mutex::new(GUICommands::default()));
-    let orig_mutex_state = Arc::new(Mutex::new(GUIState::default()));
+    let orig_mutex_state = Arc::new(Mutex::new(state));
     let orig_mutex_plotter = Arc::new(Mutex::new(Plotter::new(TOTAL_CHANNELS)));
     let orig_mutex_quit = Arc::new(Mutex::new(false));
     let orig_mutex_fakeinput = Arc::new(Mutex::new(fakeinput::InputState::new(app.verbose > 0)));
@@ -92,6 +96,22 @@ pub async fn start(app: App) {
         },
     );
 
+    let mutex_state = orig_mutex_state.clone();
+    ui.global::<Logic>().on_set_option_epochs(
+        move |value: slint::SharedString| {
+            let parsed = value.to_string().parse::<usize>().unwrap();
+            mutex_state.lock().unwrap().train_epochs = parsed;
+        },
+    );
+
+    let mutex_state = orig_mutex_state.clone();
+    ui.global::<Logic>().on_set_option_max_datapoints(
+        move |value: slint::SharedString| {
+            let parsed = value.to_string().parse::<usize>().unwrap();
+            mutex_state.lock().unwrap().train_max_datapoints = parsed;
+        },
+    );
+
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
         .on_set_option_accelerometer(move |checked: bool| {
@@ -124,8 +144,13 @@ pub async fn start(app: App) {
     let mutex_model = orig_mutex_model.clone();
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_train_handler(move || {
+        let (epochs, max_datapoints) = if let Ok(state) = mutex_state.lock() {
+            (state.train_epochs, state.train_max_datapoints)
+        } else {
+            (calibration::DEFAULT_EPOCHS, calibration::DEFAULT_MAX_DATAPOINTS)
+        };
         let calib = mutex_calib.lock().unwrap();
-        let result = calib.train();
+        let result = calib.train(epochs, max_datapoints);
         dbg!(&result);
         if let Ok(trained_model) = result {
             let mut model = mutex_model.lock().unwrap();
@@ -643,9 +668,18 @@ pub struct GUIState {
     pub log_entries: Vec<String>,
     pub update_statusbar: bool,
     pub update_log: bool,
+    pub train_max_datapoints: usize,
+    pub train_epochs: usize,
 }
 
 impl GUIState {
+    pub fn new() -> Self {
+        let mut result = Self::default();
+        result.train_max_datapoints = calibration::DEFAULT_MAX_DATAPOINTS;
+        result.train_epochs = calibration::DEFAULT_EPOCHS;
+        result
+    }
+
     pub fn log(&mut self, entry: String) {
         self.log_entries.push(entry);
         self.update_log = true;
