@@ -55,7 +55,7 @@ impl CalibController {
     }
 
     pub fn has_datapoints(&self) -> bool {
-        return !self.dataset.datapoints.is_empty()
+        return !self.dataset.datapoints.is_empty();
     }
 
     pub fn reset(&mut self) {
@@ -79,7 +79,12 @@ impl CalibController {
         Some(infer_item(model, item))
     }
 
-    pub fn train(&self, action_count: usize, epochs: usize, max_datapoints: usize) -> Result<DefaultModel, Box<dyn std::error::Error>> {
+    pub fn train(
+        &self,
+        action_count: usize,
+        epochs: usize,
+        max_datapoints: usize,
+    ) -> Result<DefaultModel, Box<dyn std::error::Error>> {
         // TODO: parameterize the ModelConfig num_classes parameter
         //type MyBackend = Wgpu<f32, i32>;
 

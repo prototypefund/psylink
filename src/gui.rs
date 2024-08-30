@@ -18,7 +18,9 @@ pub async fn start(app: App) {
     let state = GUIState::new();
 
     let ui = MainWindow::new().unwrap();
-    ui.set_train_max_datapoints(slint::SharedString::from(state.train_max_datapoints.to_string()));
+    ui.set_train_max_datapoints(slint::SharedString::from(
+        state.train_max_datapoints.to_string(),
+    ));
     ui.set_train_epochs(slint::SharedString::from(state.train_epochs.to_string()));
 
     // Naming convention:
@@ -97,20 +99,18 @@ pub async fn start(app: App) {
     );
 
     let mutex_state = orig_mutex_state.clone();
-    ui.global::<Logic>().on_set_option_epochs(
-        move |value: slint::SharedString| {
+    ui.global::<Logic>()
+        .on_set_option_epochs(move |value: slint::SharedString| {
             let parsed = value.to_string().parse::<usize>().unwrap();
             mutex_state.lock().unwrap().train_epochs = parsed;
-        },
-    );
+        });
 
     let mutex_state = orig_mutex_state.clone();
-    ui.global::<Logic>().on_set_option_max_datapoints(
-        move |value: slint::SharedString| {
+    ui.global::<Logic>()
+        .on_set_option_max_datapoints(move |value: slint::SharedString| {
             let parsed = value.to_string().parse::<usize>().unwrap();
             mutex_state.lock().unwrap().train_max_datapoints = parsed;
-        },
-    );
+        });
 
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>()
@@ -148,7 +148,10 @@ pub async fn start(app: App) {
         let (epochs, max_datapoints) = if let Ok(state) = mutex_state.lock() {
             (state.train_epochs, state.train_max_datapoints)
         } else {
-            (calibration::DEFAULT_EPOCHS, calibration::DEFAULT_MAX_DATAPOINTS)
+            (
+                calibration::DEFAULT_EPOCHS,
+                calibration::DEFAULT_MAX_DATAPOINTS,
+            )
         };
         let calib = mutex_calib.lock().unwrap();
         let action_count = mutex_settings.lock().unwrap().action_count;
