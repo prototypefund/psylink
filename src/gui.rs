@@ -143,6 +143,7 @@ pub async fn start(app: App) {
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_model = orig_mutex_model.clone();
     let mutex_state = orig_mutex_state.clone();
+    let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_train_handler(move || {
         let (epochs, max_datapoints) = if let Ok(state) = mutex_state.lock() {
             (state.train_epochs, state.train_max_datapoints)
@@ -150,7 +151,8 @@ pub async fn start(app: App) {
             (calibration::DEFAULT_EPOCHS, calibration::DEFAULT_MAX_DATAPOINTS)
         };
         let calib = mutex_calib.lock().unwrap();
-        let result = calib.train(epochs, max_datapoints);
+        let action_count = mutex_settings.lock().unwrap().action_count;
+        let result = calib.train(action_count, epochs, max_datapoints);
         dbg!(&result);
         if let Ok(trained_model) = result {
             let mut model = mutex_model.lock().unwrap();

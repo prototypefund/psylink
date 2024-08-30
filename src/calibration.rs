@@ -79,7 +79,7 @@ impl CalibController {
         Some(infer_item(model, item))
     }
 
-    pub fn train(&self, epochs: usize, max_datapoints: usize) -> Result<DefaultModel, Box<dyn std::error::Error>> {
+    pub fn train(&self, action_count: usize, epochs: usize, max_datapoints: usize) -> Result<DefaultModel, Box<dyn std::error::Error>> {
         // TODO: parameterize the ModelConfig num_classes parameter
         //type MyBackend = Wgpu<f32, i32>;
 
@@ -89,7 +89,10 @@ impl CalibController {
         // All the training artifacts will be saved in this directory
         let artifact_dir = "/tmp/psylink";
 
-        let mut training_config = TrainingConfig::new(ModelConfig::new(), AdamConfig::new());
+        let mut model_config = ModelConfig::new();
+        model_config.num_classes = action_count + 1; // + "null action"
+
+        let mut training_config = TrainingConfig::new(model_config, AdamConfig::new());
         training_config.num_epochs = epochs;
 
         // Train the model
@@ -479,7 +482,7 @@ pub fn infer_item(model: Model<DefaultBackend>, item: TrainingSample) -> i32 {
 pub fn train() -> Result<(), Box<dyn std::error::Error>> {
     let mut calib = CalibController::default();
     calib.dataset = PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
-    calib.train(DEFAULT_EPOCHS, DEFAULT_MAX_DATAPOINTS)?;
+    calib.train(2, DEFAULT_EPOCHS, DEFAULT_MAX_DATAPOINTS)?;
 
     Ok(())
 }
