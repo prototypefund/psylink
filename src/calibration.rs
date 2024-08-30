@@ -50,6 +50,10 @@ impl CalibController {
         self.dataset.datapoints.push(datapoint);
     }
 
+    pub fn count_datapoints(&self) -> usize {
+        self.dataset.datapoints.len()
+    }
+
     pub fn has_datapoints(&self) -> bool {
         return !self.dataset.datapoints.is_empty()
     }

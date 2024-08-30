@@ -534,9 +534,12 @@ pub async fn start(app: App) {
                         } else {
                             "No"
                         };
-                        let sampl = mutex_calib.lock().unwrap().get_current_index();
+                        let (sampl, dpts) = {
+                            let calib = mutex_calib.lock().unwrap();
+                            (calib.get_current_index(), calib.count_datapoints())
+                        };
                         ui.set_text_statusbar(
-                            format!("Connected: {con}, Calibrated: {cal}, Samples: {sampl}").into(),
+                            format!("Connected: {con}, Calibrated: {cal}, Samples: {sampl}, Training datapoints: {dpts}").into(),
                         );
                         state.update_statusbar = false;
                     }
