@@ -19,6 +19,7 @@ slint = { version = "1.7.2", optional = true, default-features = false, features
 plotters = { version = "0.3.6", default-features = false, features = ["all_series", "all_elements", "bitmap_backend", "bitmap_encoder", "bitmap_gif", "chrono", "colormaps", "deprecated_items", "full_palette", "image", "svg_backend"] }
 burn = { version = "0.13.2", features = ["wgpu", "train"] }
 enigo = { version = "0.2.1", features = ["x11rb"] }
+rodio = { version = "0.19", default-features = false, features = ["mp3"] }
 #plotters = { version = "0.3.6", default-features = false, features = ["bitmap_backend", "line_series", "fontconfig-dlopen", "ttf"] }
 rand = "0.8"
 uuid = "1.6"

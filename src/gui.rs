@@ -130,9 +130,10 @@ pub async fn start(app: App) {
     ui.global::<Logic>().on_set_option_keypress_value(
         move |action_id: i32, chosen_text: slint::SharedString| {
             let action = match chosen_text.as_str() {
-                "Nothing" => None,
-                "Space" => Some(' '),
-                _ => Some(chosen_text.chars().next().unwrap()),
+                "Nothing" => Action::None,
+                "Space" => Action::Key(' '),
+                "Sound" => Action::Sound(440.0),
+                _ => Action::Key(chosen_text.chars().next().unwrap()),
             };
             let mut fakeinput = mutex_fakeinput.lock().unwrap();
             fakeinput.set_action(action_id as usize, action);

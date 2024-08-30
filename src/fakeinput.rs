@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use enigo::{
     Direction::{Press, Release},
     Enigo, Key, Keyboard, Settings,
@@ -5,13 +6,20 @@ use enigo::{
 
 const DEBOUNCE_THRESHOLD: u32 = 2;
 
+#[derive(Debug)]
+pub enum Action {
+    Key(char),
+    Sound(f32),
+    None,
+}
+
 #[derive(Default)]
 pub struct InputState {
     pub input: AbstractionLayer,
     pub debounce_count: u32,
     pub active_prediction: u8,
     pub last_prediction: u8,
-    pub actions: Vec<Option<char>>,
+    pub actions: Vec<Action>,
     pub verbose: bool,
 }
 
@@ -19,11 +27,11 @@ impl InputState {
     pub fn new(verbose: bool) -> Self {
         let mut obj = Self::default();
         obj.verbose = verbose;
-        obj.actions = vec![None, Some('w'), Some('a'), Some('d'), Some('s')];
+        obj.actions = vec![Action::None, Action::Key('w'), Action::Key('a'), Action::Key('d'), Action::Key('s')];
         obj
     }
 
-    pub fn set_action(&mut self, index: usize, action: Option<char>) {
+    pub fn set_action(&mut self, index: usize, action: Action) {
         if index < self.actions.len() {
             self.actions[index] = action;
         } else if self.verbose {
@@ -57,17 +65,26 @@ impl InputState {
         // If the same key has been predicted often enough in a row without oscillations,
         // we can confidently release the old key and press the new key (if any).
         if self.debounce_count == 0 {
-            if let Some(Some(key)) = self.actions.get(self.active_prediction as usize) {
+            if let Some(Action::Key(key)) = self.actions.get(self.active_prediction as usize) {
                 self.input.release(*key);
                 if self.verbose {
                     println!("Releasing {key}");
                 }
             }
-            if let Some(Some(key)) = self.actions.get(prediction as usize) {
-                self.input.press(*key);
-                if self.verbose {
-                    println!("Pressing {key}");
+            match self.actions.get(prediction as usize) {
+                Some(Action::Key(key)) => {
+                    self.input.press(*key);
+                    if self.verbose {
+                        println!("Pressing {key}");
+                    }
                 }
+                Some(Action::Sound(frequency)) => {
+                    sound::play(*frequency);
+                    if self.verbose {
+                        println!("Playing sound freq {frequency}Hz");
+                    }
+                }
+                _ => {}
             }
             self.active_prediction = prediction;
         }
