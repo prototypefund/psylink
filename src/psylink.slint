@@ -230,23 +230,6 @@ component GraphPage {
                 }
             }
             HorizontalBox {
-                alignment: start;
-                Switch {
-                    checked: true;
-                    text: "Activate Gyroscope";
-                    toggled => {
-                        Logic.set-option-gyroscope(self.checked);
-                    }
-                }
-                Switch {
-                    checked: true;
-                    text: "Activate Accelerometer";
-                    toggled => {
-                        Logic.set-option-accelerometer(self.checked);
-                    }
-                }
-            }
-            HorizontalBox {
                 Text {
                     horizontal-alignment: center;
                     text: text-calibration-instruction;
@@ -397,6 +380,23 @@ export component MainWindow inherits Window {
                                 text: train-epochs;
                                 edited(value) => {
                                     Logic.set-option-epochs(value);
+                                }
+                            }
+                        }
+                        HorizontalBox {
+                            alignment: start;
+                            Switch {
+                                checked: true;
+                                text: "Activate Gyroscope";
+                                toggled => {
+                                    Logic.set-option-gyroscope(self.checked);
+                                }
+                            }
+                            Switch {
+                                checked: true;
+                                text: "Activate Accelerometer";
+                                toggled => {
+                                    Logic.set-option-accelerometer(self.checked);
                                 }
                             }
                         }
