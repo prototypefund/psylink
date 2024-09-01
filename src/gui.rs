@@ -13,6 +13,13 @@ const EMG_CHANNELS: i32 = 8;
 const TOTAL_CHANNELS: usize = 14;
 
 const BG_COLOR: RGBColor = RGBColor(0x1c, 0x1c, 0x1c);
+const GRAPH_EMG1_5: RGBColor = RGBColor(0xdc, 0x32, 0x2f);
+const GRAPH_EMG2_6: RGBColor = RGBColor(0x5f, 0xd3, 0x47);
+const GRAPH_EMG3_7: RGBColor = RGBColor(0xe7, 0x46, 0xfc);
+const GRAPH_EMG4_8: RGBColor = RGBColor(0xfc, 0xe3, 0x88);
+const GRAPH_GYRO1: RGBColor = RGBColor(0xff, 0xff, 0xff);
+const GRAPH_GYRO2: RGBColor = RGBColor(0xc6, 0x88, 0xfc);
+const GRAPH_GYRO3: RGBColor = RGBColor(0x88, 0x88, 0x88);
 
 pub async fn start(app: App) {
     let state = GUIState::new();
@@ -648,11 +655,15 @@ impl Plotter {
                         .iter()
                         .enumerate()
                         .map(|(i, x)| (i, *x as f64 - 1.0 * channel as f64)),
-                    &match channel % 4 {
-                        0 => RED,
-                        1 => CYAN,
-                        2 => MAGENTA,
-                        _ => GREEN,
+                    &match channel {
+                        0 | 4 => GRAPH_EMG1_5,
+                        1 | 5 => GRAPH_EMG2_6,
+                        2 | 6 => GRAPH_EMG3_7,
+                        3 | 7 => GRAPH_EMG4_8,
+                        8 | 11 => GRAPH_GYRO1,
+                        9 | 12 => GRAPH_GYRO2,
+                        10 | 13 => GRAPH_GYRO3,
+                        _ => WHITE,
                     },
                 ))
                 .expect("error drawing series");
