@@ -140,7 +140,7 @@ component GraphPage {
                         }
                         Button {
                             text: inferring ? "Stop Predicting" : "Predict";
-                            enabled: model-trained;
+                            enabled: connected && model-trained;
                             clicked => {
                                 if inferring {
                                     Logic.infer-stop-handler();
