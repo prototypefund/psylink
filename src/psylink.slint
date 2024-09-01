@@ -48,6 +48,19 @@ component LoadingPage {
         alignment: center;
         VerticalBox {
             alignment: center;
+            Text {
+                text: "Put the PsyLink onto your left arm like on the photograph.\n1. Not too tight: It should feel comfortable.\n2. Not too loose: The electrodes should be firmly on the skin and not wiggle around.";
+                font-size: 12pt;
+            }
+            Image {
+                width: 400pt;
+                height: 227pt;
+                source: @image-url("data/photo.jpg");
+            }
+            Text {
+                // Just for padding
+                text: "";
+            }
             if !connected: HorizontalBox {
                 alignment: center;
                 ta := TouchArea {
