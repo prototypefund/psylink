@@ -467,7 +467,7 @@ pub async fn start(app: App) {
                 }
                 continue;
             }
-            if packet.lost_packets > 1 {
+            if packet.lost_packets > 0 && appclone.verbose > 1 {
                 println!(
                     "Warning: lost {} packet{}",
                     packet.lost_packets,
