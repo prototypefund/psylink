@@ -746,6 +746,7 @@ pub enum CalibrationFlowState {
 impl CalibrationFlow {
     pub fn start(&mut self, action_count: usize, key_presses: u32) {
         self.action_count = action_count;
+        self.state = CalibrationFlowState::Init;
         for _ in 0..action_count {
             self.remaining_key_presses.push(key_presses);
         }
