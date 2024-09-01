@@ -11,6 +11,8 @@ slint::include_modules!();
 const MAX_POINTS: usize = 2000;
 const EMG_CHANNELS: i32 = 8;
 const TOTAL_CHANNELS: usize = 14;
+const DEFAULT_ACTION_TIME: f64 = 5.0;
+const DEFAULT_REPETITIONS: usize = 2;
 
 const BG_COLOR: RGBColor = RGBColor(0x1c, 0x1c, 0x1c);
 const GRAPH_EMG1_5: RGBColor = RGBColor(0xdc, 0x32, 0x2f);
@@ -29,6 +31,8 @@ pub async fn start(app: App) {
         state.train_max_datapoints.to_string(),
     ));
     ui.set_train_epochs(slint::SharedString::from(state.train_epochs.to_string()));
+    ui.set_calib_repetitions(slint::SharedString::from(DEFAULT_REPETITIONS.to_string()));
+    ui.set_calib_action_time(slint::SharedString::from(DEFAULT_ACTION_TIME.to_string()));
 
     // Naming convention:
     // orig_mutex_ABC = original Arc<Mutex<...>> struct
@@ -72,10 +76,15 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     let mutex_flow = orig_mutex_flow.clone();
     let mutex_calib = orig_mutex_calib.clone();
+    let mutex_state = orig_mutex_state.clone();
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_start_calibration_handler(move || {
         let action_count = mutex_settings.lock().unwrap().action_count;
-        mutex_flow.lock().unwrap().start(action_count, 2);
+        let (action_time, repetitions) = {
+            let state = mutex_state.lock().unwrap();
+            (state.calib_action_time, state.calib_repetitions)
+        };
+        mutex_flow.lock().unwrap().start(action_count, action_time, repetitions);
         mutex_calib.lock().unwrap().reset();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(true);
@@ -94,11 +103,13 @@ pub async fn start(app: App) {
     });
 
     let mutex_settings = orig_mutex_settings.clone();
+    let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>().on_set_option_action_count(
         move |action_count_string: slint::SharedString| {
             let first_char = action_count_string.chars().next().unwrap();
             let action_count = first_char.to_string().parse::<usize>().unwrap();
-            mutex_settings.lock().unwrap().action_count = action_count as usize;
+            mutex_settings.lock().unwrap().action_count = action_count;
+            mutex_state.lock().unwrap().log(format!("action_count = {action_count}."));
         },
     );
 
@@ -107,6 +118,7 @@ pub async fn start(app: App) {
         .on_set_option_epochs(move |value: slint::SharedString| {
             let parsed = value.to_string().parse::<usize>().unwrap_or(calibration::DEFAULT_EPOCHS);
             mutex_state.lock().unwrap().train_epochs = parsed;
+            mutex_state.lock().unwrap().log(format!("train_epochs = {parsed}."));
         });
 
     let mutex_state = orig_mutex_state.clone();
@@ -114,6 +126,23 @@ pub async fn start(app: App) {
         .on_set_option_max_datapoints(move |value: slint::SharedString| {
             let parsed = value.to_string().parse::<usize>().unwrap_or(calibration::DEFAULT_MAX_DATAPOINTS);
             mutex_state.lock().unwrap().train_max_datapoints = parsed;
+            mutex_state.lock().unwrap().log(format!("max_datapoints = {parsed}."));
+        });
+
+    let mutex_state = orig_mutex_state.clone();
+    ui.global::<Logic>()
+        .on_set_option_action_time(move |value: slint::SharedString| {
+            let parsed = value.to_string().parse::<f64>().unwrap_or(DEFAULT_ACTION_TIME);
+            mutex_state.lock().unwrap().calib_action_time = parsed;
+            mutex_state.lock().unwrap().log(format!("action_time = {parsed}."));
+        });
+
+    let mutex_state = orig_mutex_state.clone();
+    ui.global::<Logic>()
+        .on_set_option_repetitions(move |value: slint::SharedString| {
+            let parsed = value.to_string().parse::<usize>().unwrap_or(DEFAULT_REPETITIONS);
+            mutex_state.lock().unwrap().calib_repetitions = parsed;
+            mutex_state.lock().unwrap().log(format!("repetitions = {parsed}."));
         });
 
     let mutex_settings = orig_mutex_settings.clone();
@@ -711,6 +740,8 @@ pub struct GUIState {
     pub update_log: bool,
     pub train_max_datapoints: usize,
     pub train_epochs: usize,
+    pub calib_repetitions: usize,
+    pub calib_action_time: f64,
 }
 
 impl GUIState {
@@ -718,6 +749,8 @@ impl GUIState {
         let mut result = Self::default();
         result.train_max_datapoints = calibration::DEFAULT_MAX_DATAPOINTS;
         result.train_epochs = calibration::DEFAULT_EPOCHS;
+        result.calib_repetitions = DEFAULT_REPETITIONS;
+        result.calib_action_time = DEFAULT_ACTION_TIME;
         result
     }
 
@@ -736,8 +769,9 @@ pub struct CalibrationFlow {
     pub currently_calibrating: bool,
     pub currently_inferring: bool,
     pub action_count: usize,
+    pub action_time: f64,
     pub current_action: usize,
-    pub remaining_key_presses: Vec<u32>,
+    pub remaining_repetitions: Vec<usize>,
     pub timer: f64,
     pub state: CalibrationFlowState,
 }
@@ -755,11 +789,12 @@ pub enum CalibrationFlowState {
 }
 
 impl CalibrationFlow {
-    pub fn start(&mut self, action_count: usize, key_presses: u32) {
+    pub fn start(&mut self, action_count: usize, action_time: f64, repetitions: usize) {
         self.action_count = action_count;
+        self.action_time = action_time;
         self.state = CalibrationFlowState::Init;
         for _ in 0..action_count {
-            self.remaining_key_presses.push(key_presses);
+            self.remaining_repetitions.push(repetitions);
         }
         self.currently_calibrating = true;
     }
@@ -791,7 +826,7 @@ impl CalibrationFlow {
                 CalibrationFlowState::Welcome => CalibrationFlowState::NullActionWait,
                 CalibrationFlowState::NullActionWait => CalibrationFlowState::NullAction,
                 CalibrationFlowState::NullAction => {
-                    if self.remaining_key_presses.iter().all(|&x| x <= 0) {
+                    if self.remaining_repetitions.iter().all(|&x| x <= 0) {
                         CalibrationFlowState::Done
                     } else {
                         CalibrationFlowState::GestureActionWait
@@ -799,8 +834,8 @@ impl CalibrationFlow {
                 }
                 CalibrationFlowState::GestureActionWait => CalibrationFlowState::GestureAction,
                 CalibrationFlowState::GestureAction => {
-                    self.remaining_key_presses[self.current_action] =
-                        self.remaining_key_presses[self.current_action].saturating_sub(1);
+                    self.remaining_repetitions[self.current_action] =
+                        self.remaining_repetitions[self.current_action].saturating_sub(1);
                     self.current_action = (self.current_action + 1) % self.action_count;
 
                     CalibrationFlowState::NullActionWait
@@ -813,7 +848,7 @@ impl CalibrationFlow {
                 CalibrationFlowState::NullActionWait => 2.5,
                 CalibrationFlowState::NullAction => 5.0,
                 CalibrationFlowState::GestureActionWait => 2.5,
-                CalibrationFlowState::GestureAction => 5.0,
+                CalibrationFlowState::GestureAction => self.action_time,
             };
 
             let state_change_happened = self.state != new_state;

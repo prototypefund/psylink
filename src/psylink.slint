@@ -33,6 +33,8 @@ export global Logic {
     pure callback set-option-keypress-value(int, string);
     pure callback set-option-epochs(string);
     pure callback set-option-max-datapoints(string);
+    pure callback set-option-repetitions(string);
+    pure callback set-option-action-time(string);
 }
 
 component LoadingPage {
@@ -287,6 +289,8 @@ export component MainWindow inherits Window {
     in property <string> log: "";
     in property <string> train-max-datapoints: "";
     in property <string> train-epochs: "";
+    in property <string> calib-repetitions: "";
+    in property <string> calib-action-time: "";
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
     in property <bool> connected: false;
@@ -380,6 +384,24 @@ export component MainWindow inherits Window {
                                 text: train-epochs;
                                 edited(value) => {
                                     Logic.set-option-epochs(value);
+                                }
+                            }
+                            Text {
+                                text: "Calibration Repetitions:";
+                            }
+                            LineEdit {
+                                text: calib-repetitions;
+                                edited(value) => {
+                                    Logic.set-option-repetitions(value);
+                                }
+                            }
+                            Text {
+                                text: "Calibration Action Time (sec):";
+                            }
+                            LineEdit {
+                                text: calib-action-time;
+                                edited(value) => {
+                                    Logic.set-option-action-time(value);
                                 }
                             }
                         }
