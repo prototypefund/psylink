@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use enigo::{
-    Direction::{Press, Release},
+    Direction::{Click, Press, Release},
     Enigo, Key, Keyboard, Settings,
 };
 
@@ -20,6 +20,7 @@ pub struct InputState {
     pub active_prediction: u8,
     pub last_prediction: u8,
     pub actions: Vec<Action>,
+    pub tap: Vec<bool>,
     pub verbose: bool,
 }
 
@@ -28,6 +29,7 @@ impl InputState {
         let mut obj = Self::default();
         obj.verbose = verbose;
         obj.actions = vec![Action::None, Action::Key('w'), Action::Key('a'), Action::Key('d'), Action::Key('s')];
+        obj.tap = vec![false, false, false, false, false];
         obj
     }
 
@@ -38,6 +40,17 @@ impl InputState {
             println!(
                 "Failed to assign action, index too large. Index: {index}, action vector size: {}",
                 self.actions.len()
+            );
+        }
+    }
+
+    pub fn set_tap(&mut self, index: usize, tap: bool) {
+        if index < self.tap.len() {
+            self.tap[index] = tap;
+        } else if self.verbose {
+            println!(
+                "Failed to assign tap flag, index too large. Index: {index}, tap vector size: {}",
+                self.tap.len()
             );
         }
     }
@@ -66,14 +79,18 @@ impl InputState {
         // we can confidently release the old key and press the new key (if any).
         if self.debounce_count == 0 {
             if let Some(Action::Key(key)) = self.actions.get(self.active_prediction as usize) {
-                self.input.release(*key);
-                if self.verbose {
-                    println!("Releasing {key}");
+                let tap = self.tap.get(self.active_prediction as usize).unwrap_or(&false);
+                if !tap {
+                    self.input.release(*key);
+                    if self.verbose {
+                        println!("Releasing {key}");
+                    }
                 }
             }
             match self.actions.get(prediction as usize) {
                 Some(Action::Key(key)) => {
-                    self.input.press(*key);
+                    let tap = self.tap.get(prediction as usize).unwrap_or(&false);
+                    self.input.press(*key, *tap);
                     if self.verbose {
                         println!("Pressing {key}");
                     }
@@ -108,12 +125,13 @@ impl Default for AbstractionLayer {
 }
 
 impl AbstractionLayer {
-    pub fn press(&mut self, key: char) {
+    pub fn press(&mut self, key: char, tap: bool) {
         if self.enigo.is_some() {
+            let activity = if tap { Click } else { Press };
             self.enigo
                 .as_mut()
                 .unwrap()
-                .key(Key::Unicode(key), Press)
+                .key(Key::Unicode(key), activity)
                 .expect("Key press failed");
         }
     }

@@ -163,6 +163,12 @@ pub async fn start(app: App) {
         });
 
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
+    ui.global::<Logic>()
+        .on_set_option_tap(move |action_index: i32, checked: bool| {
+            mutex_fakeinput.lock().unwrap().set_tap(action_index as usize, checked);
+        });
+
+    let mutex_fakeinput = orig_mutex_fakeinput.clone();
     ui.global::<Logic>().on_set_option_keypress_value(
         move |action_id: i32, chosen_text: slint::SharedString| {
             let action = match chosen_text.as_str() {

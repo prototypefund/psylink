@@ -1,5 +1,6 @@
 import {
     Button,
+    CheckBox,
     ComboBox,
     HorizontalBox,
     LineEdit,
@@ -35,6 +36,7 @@ export global Logic {
     pure callback set-option-max-datapoints(string);
     pure callback set-option-repetitions(string);
     pure callback set-option-action-time(string);
+    pure callback set-option-tap(int, bool);
 }
 
 component LoadingPage {
@@ -171,6 +173,7 @@ component GraphPage {
             HorizontalLayout {
                 alignment: start;
                 VerticalBox {
+                    alignment: start;
                     Text {
                         // Just for proper alignment
                         text: "";
@@ -190,11 +193,18 @@ component GraphPage {
                         text: "Action 1";
                     }
                     ComboBox {
-                        width: 64pt;
+                        width: 72pt;
                         model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
                         current-value: "w";
                         selected(value) => {
                             Logic.set-option-keypress-value(1, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled() => {
+                            Logic.set-option-tap(1, self.checked);
                         }
                     }
                 }
@@ -204,11 +214,18 @@ component GraphPage {
                         text: "Action 2";
                     }
                     ComboBox {
-                        width: 64pt;
+                        width: 72pt;
                         model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
                         current-value: "a";
                         selected(value) => {
                             Logic.set-option-keypress-value(2, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled => {
+                            Logic.set-option-tap(2, self.checked);
                         }
                     }
                 }
@@ -218,11 +235,18 @@ component GraphPage {
                         text: "Action 3";
                     }
                     ComboBox {
-                        width: 64pt;
+                        width: 72pt;
                         model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
                         current-value: "d";
                         selected(value) => {
                             Logic.set-option-keypress-value(3, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled => {
+                            Logic.set-option-tap(3, self.checked);
                         }
                     }
                 }
@@ -232,11 +256,18 @@ component GraphPage {
                         text: "Action 4";
                     }
                     ComboBox {
-                        width: 64pt;
+                        width: 72pt;
                         model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
                         current-value: "s";
                         selected(value) => {
                             Logic.set-option-keypress-value(4, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled => {
+                            Logic.set-option-tap(4, self.checked);
                         }
                     }
                 }
