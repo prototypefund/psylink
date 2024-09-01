@@ -15,6 +15,7 @@ pub enum Action {
 
 #[derive(Default)]
 pub struct InputState {
+    pub enabled: bool,
     pub input: AbstractionLayer,
     pub debounce_count: u32,
     pub active_prediction: u8,
@@ -31,6 +32,17 @@ impl InputState {
         obj.actions = vec![Action::None, Action::Key('w'), Action::Key('a'), Action::Key('d'), Action::Key('s')];
         obj.tap = vec![false, false, false, false, false];
         obj
+    }
+
+    pub fn reset(&mut self) {
+        self.release(self.active_prediction as usize);
+        self.last_prediction = 0;
+        self.active_prediction = 0;
+        self.enabled = false;
+    }
+
+    pub fn enable(&mut self) {
+        self.enabled = true;
     }
 
     pub fn set_action(&mut self, index: usize, action: Action) {
@@ -56,6 +68,10 @@ impl InputState {
     }
 
     pub fn set_predicted(&mut self, prediction: u8) {
+        if !self.enabled {
+            return;
+        }
+
         if self.active_prediction == prediction {
             // If the same key is predicted that's already being pressed,
             // we don't need to do anything.
@@ -78,32 +94,42 @@ impl InputState {
         // If the same key has been predicted often enough in a row without oscillations,
         // we can confidently release the old key and press the new key (if any).
         if self.debounce_count == 0 {
-            if let Some(Action::Key(key)) = self.actions.get(self.active_prediction as usize) {
-                let tap = self.tap.get(self.active_prediction as usize).unwrap_or(&false);
-                if !tap {
-                    self.input.release(*key);
-                    if self.verbose {
-                        println!("Releasing {key}");
-                    }
-                }
-            }
-            match self.actions.get(prediction as usize) {
-                Some(Action::Key(key)) => {
-                    let tap = self.tap.get(prediction as usize).unwrap_or(&false);
-                    self.input.press(*key, *tap);
-                    if self.verbose {
-                        println!("Pressing {key}");
-                    }
-                }
-                Some(Action::Sound(frequency)) => {
-                    sound::play(*frequency);
-                    if self.verbose {
-                        println!("Playing sound freq {frequency}Hz");
-                    }
-                }
-                _ => {}
-            }
+            self.release(self.active_prediction as usize);
+            self.press(prediction as usize);
             self.active_prediction = prediction;
+        }
+    }
+
+    fn press(&mut self, index: usize) {
+        // This will perform the action as given by index
+        match self.actions.get(index) {
+            Some(Action::Key(key)) => {
+                let tap = self.tap.get(index).unwrap_or(&false);
+                self.input.press(*key, *tap);
+                if self.verbose {
+                    println!("Pressing {key}");
+                }
+            }
+            Some(Action::Sound(frequency)) => {
+                sound::play(*frequency);
+                if self.verbose {
+                    println!("Playing sound freq {frequency}Hz");
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn release(&mut self, index: usize) {
+        // This will "release" the action as given by index
+        if let Some(Action::Key(key)) = self.actions.get(index) {
+            let tap = self.tap.get(index).unwrap_or(&false);
+            if !tap {
+                self.input.release(*key);
+                if self.verbose {
+                    println!("Releasing {key}");
+                }
+            }
         }
     }
 }

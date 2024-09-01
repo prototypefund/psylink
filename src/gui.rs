@@ -239,25 +239,29 @@ pub async fn start(app: App) {
         });
     });
 
-    let mutex_flow = orig_mutex_flow.clone();
     let ui_weak = ui.as_weak();
+    let mutex_flow = orig_mutex_flow.clone();
     let mutex_model = orig_mutex_model.clone();
+    let mutex_fakeinput = orig_mutex_fakeinput.clone();
     ui.global::<Logic>().on_infer_start_handler(move || {
         let model = mutex_model.lock().unwrap();
         if (*model).is_some() {
             let mut calibration_flow = mutex_flow.lock().unwrap();
             calibration_flow.currently_inferring = true;
+            mutex_fakeinput.lock().unwrap().enable();
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 ui.set_inferring(true);
             });
         }
     });
 
-    let mutex_flow = orig_mutex_flow.clone();
     let ui_weak = ui.as_weak();
+    let mutex_flow = orig_mutex_flow.clone();
+    let mutex_fakeinput = orig_mutex_fakeinput.clone();
     ui.global::<Logic>().on_infer_stop_handler(move || {
         let mut calibration_flow = mutex_flow.lock().unwrap();
         calibration_flow.currently_inferring = false;
+        mutex_fakeinput.lock().unwrap().reset();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_inferring(false);
         });
