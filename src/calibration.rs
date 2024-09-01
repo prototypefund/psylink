@@ -85,9 +85,6 @@ impl CalibController {
         epochs: usize,
         max_datapoints: usize,
     ) -> Result<DefaultModel, Box<dyn std::error::Error>> {
-        // TODO: parameterize the ModelConfig num_classes parameter
-        //type MyBackend = Wgpu<f32, i32>;
-
         // Create a default Wgpu device
         let device = burn::backend::wgpu::WgpuDevice::default();
 
@@ -364,7 +361,6 @@ impl PsyLinkDataset {
             all_packets: self.all_packets.clone(),
         };
 
-        // TODO: actually do the splitting
         (train_dataset, validation_dataset)
     }
 
