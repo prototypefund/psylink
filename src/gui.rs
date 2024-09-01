@@ -109,7 +109,10 @@ pub async fn start(app: App) {
             let first_char = action_count_string.chars().next().unwrap();
             let action_count = first_char.to_string().parse::<usize>().unwrap();
             mutex_settings.lock().unwrap().action_count = action_count;
-            mutex_state.lock().unwrap().log(format!("action_count = {action_count}."));
+            if let Ok(mut state) = mutex_state.lock() {
+                state.update_action_count = true;
+                state.log(format!("action_count = {action_count}."));
+            }
         },
     );
 
@@ -556,6 +559,7 @@ pub async fn start(app: App) {
             let mutex_state = orig_mutex_state.clone();
             let mutex_model = orig_mutex_model.clone();
             let mutex_calib = orig_mutex_calib.clone();
+            let mutex_settings = orig_mutex_settings.clone();
 
             let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                 // Update displayed text
@@ -579,6 +583,11 @@ pub async fn start(app: App) {
                     if state.update_log {
                         ui.set_log(state.log2string().into());
                         state.update_log = false;
+                    }
+
+                    if state.update_action_count {
+                        ui.set_action_count(mutex_settings.lock().unwrap().action_count as i32);
+                        state.update_action_count = false;
                     }
 
                     if state.update_statusbar {
@@ -738,6 +747,7 @@ pub struct GUIState {
     pub log_entries: Vec<String>,
     pub update_statusbar: bool,
     pub update_log: bool,
+    pub update_action_count: bool,
     pub train_max_datapoints: usize,
     pub train_epochs: usize,
     pub calib_repetitions: usize,
