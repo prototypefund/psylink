@@ -67,11 +67,9 @@ pub async fn start(app: App) {
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_start_calibration_handler(move || {
-        let mut calibration_flow = mutex_flow.lock().unwrap();
-        let mut calib = mutex_calib.lock().unwrap();
-        let actions = mutex_settings.lock().unwrap().action_count;
-        calibration_flow.start(actions, 2);
-        calib.reset();
+        let action_count = mutex_settings.lock().unwrap().action_count;
+        mutex_flow.lock().unwrap().start(action_count, 2);
+        mutex_calib.lock().unwrap().reset();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(true);
             ui.set_text_calibration_instruction(format!("Attempting to calibrate...").into());
@@ -81,8 +79,7 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     let mutex_flow = orig_mutex_flow.clone();
     ui.global::<Logic>().on_stop_calibration_handler(move || {
-        let mut calibration_flow = mutex_flow.lock().unwrap();
-        calibration_flow.stop();
+        mutex_flow.lock().unwrap().stop();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(false);
             ui.set_text_calibration_instruction(format!("No calibration in progress.").into());
