@@ -105,14 +105,14 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>()
         .on_set_option_epochs(move |value: slint::SharedString| {
-            let parsed = value.to_string().parse::<usize>().unwrap();
+            let parsed = value.to_string().parse::<usize>().unwrap_or(calibration::DEFAULT_EPOCHS);
             mutex_state.lock().unwrap().train_epochs = parsed;
         });
 
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>()
         .on_set_option_max_datapoints(move |value: slint::SharedString| {
-            let parsed = value.to_string().parse::<usize>().unwrap();
+            let parsed = value.to_string().parse::<usize>().unwrap_or(calibration::DEFAULT_MAX_DATAPOINTS);
             mutex_state.lock().unwrap().train_max_datapoints = parsed;
         });
 
