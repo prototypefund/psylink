@@ -188,7 +188,7 @@ pub async fn start(app: App) {
     ui.global::<Logic>().on_train_handler(move || {
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_training(true);
-            ui.set_text_calibration_instruction("Training...".into());
+            ui.set_text_calibration_instruction("Training... (See console for status)".into());
         });
         mutex_state.lock().unwrap().training = true;
     });
