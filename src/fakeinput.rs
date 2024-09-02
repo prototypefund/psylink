@@ -6,11 +6,21 @@ use enigo::{
 
 const DEBOUNCE_THRESHOLD: u32 = 2;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Action {
     Key(char),
     Sound(f32),
     None,
+}
+
+impl Action {
+    pub fn to_string(&self) -> String {
+        match self {
+            Action::Key(key) => format!("Key \"{key}\"").to_string(),
+            Action::Sound(_) => String::from("Sound"),
+            Action::None => String::from("(no action)"),
+        }
+    }
 }
 
 #[derive(Default)]

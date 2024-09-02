@@ -387,6 +387,7 @@ pub async fn start(app: App) {
     let mutex_quit = orig_mutex_quit.clone();
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_flow = orig_mutex_flow.clone();
+    let mutex_fakeinput = orig_mutex_fakeinput.clone();
     let mutex_plotter = orig_mutex_plotter.clone();
     let mutex_commands = orig_mutex_commands.clone();
     let mutex_settings = orig_mutex_settings.clone();
@@ -499,8 +500,9 @@ pub async fn start(app: App) {
                         {
                             let mut gui_commands = mutex_commands.lock().unwrap();
                             if state_changed {
+                                let actions = mutex_fakeinput.lock().unwrap().actions.clone();
                                 gui_commands.change_calib_message =
-                                    Some(calib_flow.generate_message());
+                                    Some(calib_flow.generate_message(actions));
                                 match calib_flow.state {
                                     CalibrationFlowState::Done => {
                                         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
@@ -880,17 +882,18 @@ impl CalibrationFlow {
         }
     }
 
-    pub fn generate_message(&self) -> String {
+    pub fn generate_message(&self, actions: Vec<Action>) -> String {
         let current_action = self.current_action.saturating_add(1);
+        let action = actions.get(current_action).expect("Action not found, index out of bounds.").to_string();
         match self.state {
             CalibrationFlowState::Init => "Initializing...".into(),
             CalibrationFlowState::Welcome => "Please follow the instructions.".into(),
             CalibrationFlowState::NullActionWait => "⚠️ Prepare to rest your arm.".into(),
             CalibrationFlowState::NullAction => "⛔ Rest your arm now.".into(),
             CalibrationFlowState::GestureActionWait => {
-                format!("⚠️ Prepare movement #{current_action}")
+                format!("⚠️ Prepare gesture for {action}...")
             }
-            CalibrationFlowState::GestureAction => format!("✋ Do movement #{current_action} now."),
+            CalibrationFlowState::GestureAction => format!("✋ Do gesture for {action} now!"),
             CalibrationFlowState::Done => "Data collected. Click 'Train AI'.".into(),
         }
     }
