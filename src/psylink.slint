@@ -124,8 +124,126 @@ component GraphPage {
             // all the rows
             alignment: center;
 
+            Text {
+                text: "First, find 1-4 gestures that make a clear change in the signals.\nThen select an action for each gesture:";
+                font-size: 16pt;
+            }
             HorizontalLayout {
-                // The top row
+                // The action selection row
+                alignment: start;
+                VerticalBox {
+                    alignment: start;
+                    Text {
+                        // Just for proper alignment
+                        text: "";
+                        font-size: 14pt;
+                    }
+                    ComboBox {
+                        width: 64pt;
+                        enabled: !calibrating;
+                        model: ["1 action", "2 actions", "3 actions", "4 actions"];
+                        current-value: "1 action";
+                        selected(value) => {
+                            Logic.set-option-action-count(value);
+                        }
+                    }
+                }
+                VerticalBox {
+                    Text {
+                        text: "Action 1:";
+                        font-size: 12pt;
+                    }
+                    ComboBox {
+                        width: 72pt;
+                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                        current-value: "w";
+                        selected(value) => {
+                            Logic.set-option-keypress-value(1, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled() => {
+                            Logic.set-option-tap(1, self.checked);
+                        }
+                    }
+                }
+                VerticalBox {
+                    visible: action-count >= 2;
+                    Text {
+                        text: "Action 2:";
+                        font-size: 12pt;
+                    }
+                    ComboBox {
+                        width: 72pt;
+                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                        current-value: "a";
+                        selected(value) => {
+                            Logic.set-option-keypress-value(2, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled => {
+                            Logic.set-option-tap(2, self.checked);
+                        }
+                    }
+                }
+                VerticalBox {
+                    visible: action-count >= 3;
+                    Text {
+                        text: "Action 3:";
+                        font-size: 12pt;
+                    }
+                    ComboBox {
+                        width: 72pt;
+                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                        current-value: "d";
+                        selected(value) => {
+                            Logic.set-option-keypress-value(3, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled => {
+                            Logic.set-option-tap(3, self.checked);
+                        }
+                    }
+                }
+                VerticalBox {
+                    visible: action-count >= 4;
+                    Text {
+                        text: "Action 4:";
+                        font-size: 12pt;
+                    }
+                    ComboBox {
+                        width: 72pt;
+                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+                        current-value: "s";
+                        selected(value) => {
+                            Logic.set-option-keypress-value(4, value);
+                        }
+                    }
+                    CheckBox {
+                        checked: false;
+                        text: "Quick tap";
+                        toggled => {
+                            Logic.set-option-tap(4, self.checked);
+                        }
+                    }
+                }
+            }
+
+            Text {
+                text: "Then, use the following steps in order:";
+                font-size: 16pt;
+            }
+
+            HorizontalLayout {
+                // The command button row
                 alignment: start;
 
                 VerticalLayout {
@@ -133,7 +251,7 @@ component GraphPage {
                     HorizontalBox {
                         Button {
                             enabled: connected;
-                            text: calibrating ? "Stop calibration" : "Start calibration";
+                            text: calibrating ? "Stop calibration" : "1. Start calibration";
                             clicked => {
                                 if calibrating {
                                     Logic.stop-calibration-handler();
@@ -143,14 +261,14 @@ component GraphPage {
                             }
                         }
                         Button {
-                            text: training ? "Training..." : "Train AI";
+                            text: training ? "Training..." : "2. Train AI";
                             enabled: sampled && !training;
                             clicked => {
                                 Logic.train-handler();
                             }
                         }
                         Button {
-                            text: inferring ? "Stop Predicting" : "Predict";
+                            text: inferring ? "Stop Predicting" : "3. Predict";
                             enabled: connected && model-trained;
                             clicked => {
                                 if inferring {
@@ -180,108 +298,6 @@ component GraphPage {
                             horizontal-alignment: left;
                             text: text-predicted;
                             font-size: 18pt;
-                        }
-                    }
-                }
-            }
-            HorizontalLayout {
-                alignment: start;
-                VerticalBox {
-                    alignment: start;
-                    Text {
-                        // Just for proper alignment
-                        text: "";
-                    }
-                    ComboBox {
-                        width: 64pt;
-                        enabled: !calibrating;
-                        model: ["1 action", "2 actions", "3 actions", "4 actions"];
-                        current-value: "1 action";
-                        selected(value) => {
-                            Logic.set-option-action-count(value);
-                        }
-                    }
-                }
-                VerticalBox {
-                    Text {
-                        text: "Action 1";
-                    }
-                    ComboBox {
-                        width: 72pt;
-                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-                        current-value: "w";
-                        selected(value) => {
-                            Logic.set-option-keypress-value(1, value);
-                        }
-                    }
-                    CheckBox {
-                        checked: false;
-                        text: "Quick tap";
-                        toggled() => {
-                            Logic.set-option-tap(1, self.checked);
-                        }
-                    }
-                }
-                VerticalBox {
-                    visible: action-count >= 2;
-                    Text {
-                        text: "Action 2";
-                    }
-                    ComboBox {
-                        width: 72pt;
-                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-                        current-value: "a";
-                        selected(value) => {
-                            Logic.set-option-keypress-value(2, value);
-                        }
-                    }
-                    CheckBox {
-                        checked: false;
-                        text: "Quick tap";
-                        toggled => {
-                            Logic.set-option-tap(2, self.checked);
-                        }
-                    }
-                }
-                VerticalBox {
-                    visible: action-count >= 3;
-                    Text {
-                        text: "Action 3";
-                    }
-                    ComboBox {
-                        width: 72pt;
-                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-                        current-value: "d";
-                        selected(value) => {
-                            Logic.set-option-keypress-value(3, value);
-                        }
-                    }
-                    CheckBox {
-                        checked: false;
-                        text: "Quick tap";
-                        toggled => {
-                            Logic.set-option-tap(3, self.checked);
-                        }
-                    }
-                }
-                VerticalBox {
-                    visible: action-count >= 4;
-                    Text {
-                        text: "Action 4";
-                    }
-                    ComboBox {
-                        width: 72pt;
-                        model: ["Nothing", "Sound", "Space", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-                        current-value: "s";
-                        selected(value) => {
-                            Logic.set-option-keypress-value(4, value);
-                        }
-                    }
-                    CheckBox {
-                        checked: false;
-                        text: "Quick tap";
-                        toggled => {
-                            Logic.set-option-tap(4, self.checked);
                         }
                     }
                 }
