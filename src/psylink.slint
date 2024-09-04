@@ -107,6 +107,7 @@ component GraphPage {
     in property <string> text-calibration-instruction;
     in property <string> text-calibration-timer;
     in property <string> text-predicted;
+    in property <string> combobox-action-count;
     in property <bool> connected;
     in property <bool> training;
     in property <bool> calibrating;
@@ -142,7 +143,7 @@ component GraphPage {
                         width: 64pt;
                         enabled: !calibrating;
                         model: ["1 action", "2 actions", "3 actions", "4 actions"];
-                        current-value: "1 action";
+                        current-value: combobox-action-count;
                         selected(value) => {
                             Logic.set-option-action-count(value);
                         }
@@ -362,6 +363,7 @@ export component MainWindow inherits Window {
     in property <string> train-epochs: "";
     in property <string> calib-repetitions: "";
     in property <string> calib-action-time: "";
+    in property <string> combobox-action-count: "1 actions";
     in property <bool> calibrating: false;
     in property <bool> inferring: false;
     in property <bool> connected: false;
@@ -402,6 +404,7 @@ export component MainWindow inherits Window {
                         text-calibration-timer: text-calibration-timer;
                         text-predicted: text-predicted;
                         pressedkeys: pressedkeys;
+                        combobox-action-count: combobox-action-count;
                         inferring: inferring;
                         model-trained: model-trained;
                         action-count: action-count;

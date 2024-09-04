@@ -257,8 +257,13 @@ pub async fn start(app: App) {
 
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_state = orig_mutex_state.clone();
+    let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_load_dataset_handler(move || {
-        mutex_state.lock().unwrap().update_statusbar = true;
+        mutex_settings.lock().unwrap().action_count = 3;
+        if let Ok(mut state) = mutex_state.lock() {
+            state.update_statusbar = true;
+            state.update_action_count = true;
+        }
         mutex_calib.lock().unwrap().dataset =
             PsyLinkDataset::from_arrays(&TEST_DATASET.0, &TEST_DATASET.1);
     });
@@ -266,15 +271,19 @@ pub async fn start(app: App) {
     let ui_weak = ui.as_weak();
     let mutex_model = orig_mutex_model.clone();
     let mutex_state = orig_mutex_state.clone();
+    let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_load_model_handler(move || {
         let mut model = mutex_model.lock().unwrap();
         if let Ok(mut state) = mutex_state.lock() {
             state.update_statusbar = true;
+            state.update_action_count = true;
             state.trained = true;
         }
+        mutex_settings.lock().unwrap().action_count = 3;
         *model = Some(calibration::load_test_model());
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_model_trained(true);
+            ui.set_combobox_action_count(slint::SharedString::from("3 actions"));
         });
     });
 
