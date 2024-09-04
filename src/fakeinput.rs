@@ -39,7 +39,13 @@ impl InputState {
     pub fn new(verbose: bool) -> Self {
         let mut obj = Self::default();
         obj.verbose = verbose;
-        obj.actions = vec![Action::None, Action::Key('w'), Action::Key('a'), Action::Key('d'), Action::Key('s')];
+        obj.actions = vec![
+            Action::None,
+            Action::Key('w'),
+            Action::Key('a'),
+            Action::Key('d'),
+            Action::Key('s'),
+        ];
         obj.tap = vec![false, false, false, false, false];
         obj
     }

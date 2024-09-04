@@ -12,9 +12,9 @@ pub mod protocol;
 pub mod sound;
 
 pub mod prelude {
+    pub use crate::fakeinput::Action;
     #[cfg(feature = "gui")]
     pub use crate::gui;
-    pub use crate::fakeinput::Action;
     pub use crate::{bluetooth, calibration, fakeinput, firmware, protocol, sound};
 
     #[derive(Clone, Copy)]

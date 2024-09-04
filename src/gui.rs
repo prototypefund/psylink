@@ -84,7 +84,10 @@ pub async fn start(app: App) {
             let state = mutex_state.lock().unwrap();
             (state.calib_action_time, state.calib_repetitions)
         };
-        mutex_flow.lock().unwrap().start(action_count, action_time, repetitions);
+        mutex_flow
+            .lock()
+            .unwrap()
+            .start(action_count, action_time, repetitions);
         mutex_calib.lock().unwrap().reset();
         let _ = ui_weak.upgrade_in_event_loop(move |ui| {
             ui.set_calibrating(true);
@@ -119,33 +122,57 @@ pub async fn start(app: App) {
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>()
         .on_set_option_epochs(move |value: slint::SharedString| {
-            let parsed = value.to_string().parse::<usize>().unwrap_or(calibration::DEFAULT_EPOCHS);
+            let parsed = value
+                .to_string()
+                .parse::<usize>()
+                .unwrap_or(calibration::DEFAULT_EPOCHS);
             mutex_state.lock().unwrap().train_epochs = parsed;
-            mutex_state.lock().unwrap().log(format!("train_epochs = {parsed}."));
+            mutex_state
+                .lock()
+                .unwrap()
+                .log(format!("train_epochs = {parsed}."));
         });
 
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>()
         .on_set_option_max_datapoints(move |value: slint::SharedString| {
-            let parsed = value.to_string().parse::<usize>().unwrap_or(calibration::DEFAULT_MAX_DATAPOINTS);
+            let parsed = value
+                .to_string()
+                .parse::<usize>()
+                .unwrap_or(calibration::DEFAULT_MAX_DATAPOINTS);
             mutex_state.lock().unwrap().train_max_datapoints = parsed;
-            mutex_state.lock().unwrap().log(format!("max_datapoints = {parsed}."));
+            mutex_state
+                .lock()
+                .unwrap()
+                .log(format!("max_datapoints = {parsed}."));
         });
 
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>()
         .on_set_option_action_time(move |value: slint::SharedString| {
-            let parsed = value.to_string().parse::<f64>().unwrap_or(DEFAULT_ACTION_TIME);
+            let parsed = value
+                .to_string()
+                .parse::<f64>()
+                .unwrap_or(DEFAULT_ACTION_TIME);
             mutex_state.lock().unwrap().calib_action_time = parsed;
-            mutex_state.lock().unwrap().log(format!("action_time = {parsed}."));
+            mutex_state
+                .lock()
+                .unwrap()
+                .log(format!("action_time = {parsed}."));
         });
 
     let mutex_state = orig_mutex_state.clone();
     ui.global::<Logic>()
         .on_set_option_repetitions(move |value: slint::SharedString| {
-            let parsed = value.to_string().parse::<usize>().unwrap_or(DEFAULT_REPETITIONS);
+            let parsed = value
+                .to_string()
+                .parse::<usize>()
+                .unwrap_or(DEFAULT_REPETITIONS);
             mutex_state.lock().unwrap().calib_repetitions = parsed;
-            mutex_state.lock().unwrap().log(format!("repetitions = {parsed}."));
+            mutex_state
+                .lock()
+                .unwrap()
+                .log(format!("repetitions = {parsed}."));
         });
 
     let mutex_settings = orig_mutex_settings.clone();
@@ -165,7 +192,10 @@ pub async fn start(app: App) {
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
     ui.global::<Logic>()
         .on_set_option_tap(move |action_index: i32, checked: bool| {
-            mutex_fakeinput.lock().unwrap().set_tap(action_index as usize, checked);
+            mutex_fakeinput
+                .lock()
+                .unwrap()
+                .set_tap(action_index as usize, checked);
         });
 
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
@@ -189,8 +219,8 @@ pub async fn start(app: App) {
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_train_handler(move || {
         //let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-            //ui.set_training(true);
-            //ui.set_text_calibration_instruction("Training... (See console for status)".into());
+        //ui.set_training(true);
+        //ui.set_text_calibration_instruction("Training... (See console for status)".into());
         //});
 
         let (epochs, max_datapoints) = if let Ok(state) = mutex_state.lock() {
@@ -351,9 +381,9 @@ pub async fn start(app: App) {
                 }
             }
             //if mutex_state.lock().unwrap().training {
-                // This used to be the place where the training gets started, but that
-                // introduced a bug where the slint gui would stop responding after
-                // training, so it was temporarily reverted until I find a way to sovle this
+            // This used to be the place where the training gets started, but that
+            // introduced a bug where the slint gui would stop responding after
+            // training, so it was temporarily reverted until I find a way to sovle this
             //}
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
             if *(mutex_quit.lock().unwrap()) {
@@ -895,7 +925,10 @@ impl CalibrationFlow {
 
     pub fn generate_message(&self, actions: Vec<Action>) -> String {
         let current_action = self.current_action.saturating_add(1);
-        let action = actions.get(current_action).expect("Action not found, index out of bounds.").to_string();
+        let action = actions
+            .get(current_action)
+            .expect("Action not found, index out of bounds.")
+            .to_string();
         match self.state {
             CalibrationFlowState::Init => "Initializing...".into(),
             CalibrationFlowState::Welcome => "Please follow the instructions.".into(),
