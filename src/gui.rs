@@ -856,6 +856,7 @@ impl CalibrationFlow {
         self.action_count = action_count;
         self.action_time = action_time;
         self.state = CalibrationFlowState::Init;
+        self.remaining_repetitions.clear();
         for _ in 0..action_count {
             self.remaining_repetitions.push(repetitions);
         }
