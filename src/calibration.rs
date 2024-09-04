@@ -28,7 +28,7 @@ pub const DEFAULT_MAX_DATAPOINTS: usize = 4000;
 pub const DEFAULT_EPOCHS: usize = 6;
 const VALIDATION_SET_PERCENTAGE: usize = 20;
 const SAMPLE_TIMESPAN: usize = 250; // How many time frames should a training sample contain?
-pub const TEST_DATASET: ([(usize, u8); 12450], [[u8; 14]; 20475]) =
+pub const TEST_DATASET: ([(usize, u8); 31100], [[u8; 14]; 59925]) =
     include!("data/test_dataset.rs");
 pub const TEST_MODEL: &[u8] = include_bytes!("data/test_model.bin");
 
