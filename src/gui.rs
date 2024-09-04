@@ -184,13 +184,52 @@ pub async fn start(app: App) {
 
     let ui_weak = ui.as_weak();
     let mutex_state = orig_mutex_state.clone();
+    let mutex_model = orig_mutex_model.clone();
+    let mutex_calib = orig_mutex_calib.clone();
     let mutex_settings = orig_mutex_settings.clone();
     ui.global::<Logic>().on_train_handler(move || {
-        let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-            ui.set_training(true);
-            ui.set_text_calibration_instruction("Training... (See console for status)".into());
-        });
-        mutex_state.lock().unwrap().training = true;
+        //let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+            //ui.set_training(true);
+            //ui.set_text_calibration_instruction("Training... (See console for status)".into());
+        //});
+
+        let (epochs, max_datapoints) = if let Ok(state) = mutex_state.lock() {
+            (state.train_epochs, state.train_max_datapoints)
+        } else {
+            (
+                calibration::DEFAULT_EPOCHS,
+                calibration::DEFAULT_MAX_DATAPOINTS,
+            )
+        };
+        let calib = mutex_calib.lock().unwrap();
+        let action_count = mutex_settings.lock().unwrap().action_count;
+        let result = calib.train(action_count, epochs, max_datapoints);
+        dbg!(&result);
+        if let Ok(trained_model) = result {
+            let mut model = mutex_model.lock().unwrap();
+            let model_log = format!("{:?}", &trained_model);
+            *model = Some(trained_model);
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                ui.set_training(false);
+                ui.set_model_trained(true);
+                ui.set_text_calibration_instruction("Training complete.".into());
+            });
+            if let Ok(mut state) = mutex_state.lock() {
+                state.log("Finished training AI calibration model.".into());
+                state.log(format!("Training result: {model_log}").into());
+                state.trained = true;
+                state.update_statusbar = true;
+            }
+        } else {
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| {
+                ui.set_training(false);
+                ui.set_text_calibration_instruction("Training failed.".into());
+            });
+            mutex_state
+                .lock()
+                .unwrap()
+                .log("Failed training AI calibration model.".into());
+        }
     });
 
     let mutex_calib = orig_mutex_calib.clone();
@@ -271,11 +310,9 @@ pub async fn start(app: App) {
     let mutex_quit = orig_mutex_quit.clone();
     let mutex_flow = orig_mutex_flow.clone();
     let mutex_model = orig_mutex_model.clone();
-    let mutex_state = orig_mutex_state.clone();
     let mutex_calib = orig_mutex_calib.clone();
     let mutex_commands = orig_mutex_commands.clone();
     let mutex_fakeinput = orig_mutex_fakeinput.clone();
-    let ui_weak = ui.as_weak();
     let appclone = app.clone();
     tokio::spawn(async move {
         loop {
@@ -304,46 +341,11 @@ pub async fn start(app: App) {
                     println!("WARNING: attempted to infer before model is loaded");
                 }
             }
-            if mutex_state.lock().unwrap().training {
-                let (epochs, max_datapoints) = if let Ok(mut state) = mutex_state.lock() {
-                    state.training = false;
-                    (state.train_epochs, state.train_max_datapoints)
-                } else {
-                    (
-                        calibration::DEFAULT_EPOCHS,
-                        calibration::DEFAULT_MAX_DATAPOINTS,
-                    )
-                };
-                let calib = mutex_calib.lock().unwrap();
-                let action_count = mutex_settings.lock().unwrap().action_count;
-                let result = calib.train(action_count, epochs, max_datapoints);
-                dbg!(&result);
-                if let Ok(trained_model) = result {
-                    let mut model = mutex_model.lock().unwrap();
-                    let model_log = format!("{:?}", &trained_model);
-                    *model = Some(trained_model);
-                    let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                        ui.set_training(false);
-                        ui.set_model_trained(true);
-                        ui.set_text_calibration_instruction("Training complete.".into());
-                    });
-                    if let Ok(mut state) = mutex_state.lock() {
-                        state.log("Finished training AI calibration model.".into());
-                        state.log(format!("Training result: {model_log}").into());
-                        state.trained = true;
-                        state.update_statusbar = true;
-                    }
-                } else {
-                    let _ = ui_weak.upgrade_in_event_loop(move |ui| {
-                        ui.set_training(false);
-                        ui.set_text_calibration_instruction("Training failed.".into());
-                    });
-                    mutex_state
-                        .lock()
-                        .unwrap()
-                        .log("Failed training AI calibration model.".into());
-                }
-            }
+            //if mutex_state.lock().unwrap().training {
+                // This used to be the place where the training gets started, but that
+                // introduced a bug where the slint gui would stop responding after
+                // training, so it was temporarily reverted until I find a way to sovle this
+            //}
             tokio::time::sleep(tokio::time::Duration::from_secs_f32(0.1)).await;
             if *(mutex_quit.lock().unwrap()) {
                 if appclone.verbose > 0 {
